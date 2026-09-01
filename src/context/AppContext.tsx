@@ -62,7 +62,7 @@ interface AppContextType {
   enterParentDashboard: () => void;
   exitParentDashboard: () => void;
 
-  // Modals (Badge, Alphabet Soundboard, Number Explorer)
+  // Modals
   isBadgeModalOpen: boolean;
   openBadgeModal: () => void;
   closeBadgeModal: () => void;
@@ -74,6 +74,22 @@ interface AppContextType {
   isNumberModalOpen: boolean;
   openNumberModal: () => void;
   closeNumberModal: () => void;
+
+  isColorsModalOpen: boolean;
+  openColorsModal: () => void;
+  closeColorsModal: () => void;
+
+  isShapesModalOpen: boolean;
+  openShapesModal: () => void;
+  closeShapesModal: () => void;
+
+  isAnimalsModalOpen: boolean;
+  openAnimalsModal: () => void;
+  closeAnimalsModal: () => void;
+
+  isHabitsModalOpen: boolean;
+  openHabitsModal: () => void;
+  closeHabitsModal: () => void;
 
   // Settings & Audio
   settings: AppSettings;
@@ -111,6 +127,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [isAlphabetModalOpen, setIsAlphabetModalOpen] = useState(false);
   const [isNumberModalOpen, setIsNumberModalOpen] = useState(false);
+  const [isColorsModalOpen, setIsColorsModalOpen] = useState(false);
+  const [isShapesModalOpen, setIsShapesModalOpen] = useState(false);
+  const [isAnimalsModalOpen, setIsAnimalsModalOpen] = useState(false);
+  const [isHabitsModalOpen, setIsHabitsModalOpen] = useState(false);
   const [recentBadgeUnlocked, setRecentBadgeUnlocked] = useState<Badge | null>(null);
 
   // Settings
@@ -196,7 +216,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [activeProfile.id]);
 
-  // Time Tracker: When in lesson or activity screen, tick up learning time every 5 seconds
+  // Time Tracker
   useEffect(() => {
     const isLearning = screen === 'lesson-player' || screen === 'mini-activity';
     if (!isLearning) return;
@@ -427,6 +447,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsNumberModalOpen(false);
   }, []);
 
+  // Colors Explorer modal
+  const openColorsModal = useCallback(() => {
+    soundEffects.playTopicChime();
+    setIsColorsModalOpen(true);
+    voiceAssistant.speak('Welcome to Rainbow Colors! Tap any color!');
+  }, []);
+
+  const closeColorsModal = useCallback(() => {
+    soundEffects.playPop();
+    setIsColorsModalOpen(false);
+  }, []);
+
+  // Shapes Explorer modal
+  const openShapesModal = useCallback(() => {
+    soundEffects.playTopicChime();
+    setIsShapesModalOpen(true);
+    voiceAssistant.speak('Welcome to Shapes and Stars! Tap any shape!');
+  }, []);
+
+  const closeShapesModal = useCallback(() => {
+    soundEffects.playPop();
+    setIsShapesModalOpen(false);
+  }, []);
+
+  // Animals Explorer modal
+  const openAnimalsModal = useCallback(() => {
+    soundEffects.playTopicChime();
+    setIsAnimalsModalOpen(true);
+    voiceAssistant.speak('Welcome to Animal Safari and Farm Friends! Tap any animal!');
+  }, []);
+
+  const closeAnimalsModal = useCallback(() => {
+    soundEffects.playPop();
+    setIsAnimalsModalOpen(false);
+  }, []);
+
+  // Habits Explorer modal
+  const openHabitsModal = useCallback(() => {
+    soundEffects.playTopicChime();
+    setIsHabitsModalOpen(true);
+    voiceAssistant.speak('Welcome to Good Habits and Healthy Routines! Tap any habit!');
+  }, []);
+
+  const closeHabitsModal = useCallback(() => {
+    soundEffects.playPop();
+    setIsHabitsModalOpen(false);
+  }, []);
+
   // Custom Lesson Management (Admin)
   const addCustomLesson = useCallback((newLessonData: Omit<Lesson, 'id'>) => {
     const newLesson: Lesson = {
@@ -524,6 +592,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isNumberModalOpen,
         openNumberModal,
         closeNumberModal,
+
+        isColorsModalOpen,
+        openColorsModal,
+        closeColorsModal,
+
+        isShapesModalOpen,
+        openShapesModal,
+        closeShapesModal,
+
+        isAnimalsModalOpen,
+        openAnimalsModal,
+        closeAnimalsModal,
+
+        isHabitsModalOpen,
+        openHabitsModal,
+        closeHabitsModal,
 
         settings,
         updateSettings,

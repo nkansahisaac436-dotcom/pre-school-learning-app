@@ -5,6 +5,10 @@ import { ParentalGateModal } from './components/common/ParentalGateModal';
 import { BadgeCollectionModal } from './components/common/BadgeCollectionModal';
 import { AlphabetSoundboardModal } from './components/child/AlphabetSoundboardModal';
 import { NumberExplorerModal } from './components/child/NumberExplorerModal';
+import { ColorsExplorerModal } from './components/child/ColorsExplorerModal';
+import { ShapesExplorerModal } from './components/child/ShapesExplorerModal';
+import { AnimalsExplorerModal } from './components/child/AnimalsExplorerModal';
+import { HabitsExplorerModal } from './components/child/HabitsExplorerModal';
 import { SplashScreen } from './components/child/SplashScreen';
 import { ProfileSetup } from './components/child/ProfileSetup';
 import { HomeDashboard } from './components/child/HomeDashboard';
@@ -20,7 +24,15 @@ const MainLayout: React.FC = () => {
     isAlphabetModalOpen, 
     closeAlphabetModal, 
     isNumberModalOpen, 
-    closeNumberModal 
+    closeNumberModal,
+    isColorsModalOpen,
+    closeColorsModal,
+    isShapesModalOpen,
+    closeShapesModal,
+    isAnimalsModalOpen,
+    closeAnimalsModal,
+    isHabitsModalOpen,
+    closeHabitsModal
   } = useApp();
 
   return (
@@ -47,6 +59,10 @@ const MainLayout: React.FC = () => {
       <BadgeCollectionModal />
       <AlphabetSoundboardModal isOpen={isAlphabetModalOpen} onClose={closeAlphabetModal} />
       <NumberExplorerModal isOpen={isNumberModalOpen} onClose={closeNumberModal} />
+      <ColorsExplorerModal isOpen={isColorsModalOpen} onClose={closeColorsModal} />
+      <ShapesExplorerModal isOpen={isShapesModalOpen} onClose={closeShapesModal} />
+      <AnimalsExplorerModal isOpen={isAnimalsModalOpen} onClose={closeAnimalsModal} />
+      <HabitsExplorerModal isOpen={isHabitsModalOpen} onClose={closeHabitsModal} />
     </div>
   );
 };
