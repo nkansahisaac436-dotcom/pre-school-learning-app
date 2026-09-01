@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    background: radial-gradient(circle at 50% 0%, #fef3c7 0%, #fffbeb 50%, #f0fdf4 100%);
+    min-height: 100vh;
+    touch-action: manipulation;
+  }
+}
+
+/* Toddler chunky button physics */
+.kid-btn-pop {
+  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 8px 0px rgba(0, 0, 0, 0.15), 0 12px 20px rgba(0, 0, 0, 0.08);
+}
+
+.kid-btn-pop:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 0px rgba(0, 0, 0, 0.15), 0 16px 24px rgba(0, 0, 0, 0.12);
+}
+
+.kid-btn-pop:active {
+  transform: translateY(4px) scale(0.97);
+  box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 10px rgba(0, 0, 0, 0.06);
+}
+
+.kid-card {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 10px 0px rgba(0, 0, 0, 0.08), 0 15px 30px rgba(0, 0, 0, 0.05);
+}
+
+.kid-card:hover {
+  transform: translateY(-8px) rotate(1deg);
+  box-shadow: 0 16px 0px rgba(0, 0, 0, 0.1), 0 24px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* Star sparkle particles */
+@keyframes starFloat {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.9; }
+  50% { transform: translateY(-15px) rotate(180deg) scale(1.15); opacity: 1; }
+  100% { transform: translateY(0px) rotate(360deg) scale(1); opacity: 0.9; }
+}
+
+.animate-star-float {
+  animation: starFloat 4s ease-in-out infinite;
+}
+
+/* Custom scrollbars that look smooth and friendly */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(253, 230, 138, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #f59e0b;
+  border-radius: 9999px;
+  border: 2px solid #fffbeb;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
