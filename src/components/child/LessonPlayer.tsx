@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
-import { Play, Pause, RotateCcw, ArrowRight, Music, Volume2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, ArrowRight, Music, Volume2, Sparkles } from 'lucide-react';
 
 export const LessonPlayer: React.FC = () => {
   const { selectedLesson, finishLessonToActivity, setScreen, settings } = useApp();
@@ -11,31 +11,33 @@ export const LessonPlayer: React.FC = () => {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [activeLyricIndex, setActiveLyricIndex] = useState(0);
 
-  const duration = selectedLesson?.durationSeconds || 45;
+  const duration = selectedLesson?.durationSeconds || 22;
   const timerRef = useRef<number | null>(null);
   const lastRecitedLyricIdx = useRef<number>(-1);
 
-  // Recite first lyric when starting
+  // Recite first lyric immediately when starting
   useEffect(() => {
     if (selectedLesson?.lyrics && selectedLesson.lyrics.length > 0 && isPlaying) {
       const firstLyric = selectedLesson.lyrics[0];
       lastRecitedLyricIdx.current = 0;
       if (settings.voiceNarrationEnabled) {
         setTimeout(() => {
+          soundEffects.playRhythmChord('C');
           voiceAssistant.reciteLyric(firstLyric.text);
-        }, 500);
+        }, 300);
       }
     }
   }, [selectedLesson, settings.voiceNarrationEnabled]);
 
-  // Synchronize playback timer & voice recitation
+  // Fast, smooth playback loop (updates every 250ms for snappy real-time lyrics & rhythm)
   useEffect(() => {
     if (!selectedLesson) return;
 
     if (isPlaying) {
+      const intervalMs = 250;
       timerRef.current = window.setInterval(() => {
         setElapsedSec((prev) => {
-          const next = prev + 1;
+          const next = +(prev + 0.25).toFixed(2);
 
           // Check lyrics update
           if (selectedLesson.lyrics) {
@@ -48,21 +50,24 @@ export const LessonPlayer: React.FC = () => {
 
             setActiveLyricIndex(nextLyricIdx);
 
-            // If a new lyric line has arrived, RECITE IT ALOUD!
+            // If a new lyric line has arrived, RECITE IT IMMEDIATELY with a cheerful rhythm chord!
             if (nextLyricIdx !== lastRecitedLyricIdx.current) {
               lastRecitedLyricIdx.current = nextLyricIdx;
               const currentLyricObj = selectedLesson.lyrics[nextLyricIdx];
               if (currentLyricObj && settings.voiceNarrationEnabled) {
+                // Play melodic accompaniment chord
+                const chordNames: ('C' | 'G' | 'F' | 'Am')[] = ['C', 'G', 'F', 'Am'];
+                soundEffects.playRhythmChord(chordNames[nextLyricIdx % chordNames.length]);
                 voiceAssistant.reciteLyric(currentLyricObj.text);
               }
             }
           }
 
-          // Gentle musical rhythmic melody
-          if (next % 3 === 0) {
+          // Gentle xylophone note beat on full seconds
+          if (Math.floor(next) !== Math.floor(prev) && Math.floor(next) % 2 === 0) {
             const melodyNotes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.0, 1046.5];
-            const randomNote = melodyNotes[Math.floor(Math.random() * melodyNotes.length)];
-            soundEffects.playNote(randomNote, 0.25);
+            const note = melodyNotes[Math.floor(next / 2) % melodyNotes.length];
+            soundEffects.playNote(note, 0.2);
           }
 
           // When lesson ends, auto launch mini-activity!
@@ -72,12 +77,12 @@ export const LessonPlayer: React.FC = () => {
             }
             setTimeout(() => {
               finishLessonToActivity();
-            }, 1000);
+            }, 600);
             return duration;
           }
           return next;
         });
-      }, 1000);
+      }, intervalMs);
     } else if (timerRef.current !== null) {
       window.clearInterval(timerRef.current);
       voiceAssistant.stop();
@@ -115,8 +120,9 @@ export const LessonPlayer: React.FC = () => {
     setIsPlaying(true);
     if (selectedLesson.lyrics && selectedLesson.lyrics[0]) {
       setTimeout(() => {
+        soundEffects.playRhythmChord('C');
         voiceAssistant.reciteLyric(selectedLesson.lyrics![0].text);
-      }, 400);
+      }, 250);
     }
   };
 
@@ -205,8 +211,8 @@ export const LessonPlayer: React.FC = () => {
               {/* Theme-specific big animated character */}
               <div className="relative mb-4">
                 <div
-                  className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center text-8xl md:text-9xl shadow-2xl border-4 border-white ${
-                    isPlaying ? 'animate-bounce-slow' : ''
+                  className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center text-8xl md:text-9xl shadow-2xl border-4 border-white transition-transform duration-300 ${
+                    isPlaying ? 'animate-bounce-slow scale-105' : ''
                   }`}
                   style={{ backgroundColor: `${selectedLesson.accentColor}35` }}
                 >
@@ -220,7 +226,7 @@ export const LessonPlayer: React.FC = () => {
                   <>
                     <div
                       className="absolute inset-0 rounded-full border-4 border-amber-400 animate-ping opacity-25 pointer-events-none"
-                      style={{ animationDuration: '2s' }}
+                      style={{ animationDuration: '1.2s' }}
                     />
                     <div className="absolute -top-3 -right-3 text-3xl animate-bounce">🎶</div>
                     <div className="absolute -bottom-2 -left-2 text-3xl animate-wiggle">⭐</div>
@@ -228,22 +234,26 @@ export const LessonPlayer: React.FC = () => {
                 )}
               </div>
 
-              {/* Karaoke Bouncing Lyric Banner with Read-Aloud Voice Feedback */}
+              {/* Karaoke Bouncing Lyric Banner with Fast Read-Aloud Voice Feedback */}
               {currentLyric && (
                 <div 
                   onClick={handleManualRecite}
-                  className="px-6 py-3.5 rounded-2xl bg-white/95 backdrop-blur border-3 border-amber-400 shadow-xl max-w-2xl animate-pop-in cursor-pointer hover:scale-102 transition"
+                  className="px-6 py-4 rounded-3xl bg-white/95 backdrop-blur border-4 border-amber-400 shadow-2xl max-w-2xl animate-pop-in cursor-pointer hover:scale-105 transition"
                   title="Tap to hear recitation again"
                 >
                   <div className="flex items-center justify-center gap-3">
-                    <Volume2 className="w-6 h-6 text-rose-500 animate-pulse flex-shrink-0" />
-                    <p className="text-xl md:text-3xl font-black text-gray-900 leading-snug">
+                    <Volume2 className="w-7 h-7 text-rose-500 animate-bounce flex-shrink-0" />
+                    <p className="text-2xl md:text-4xl font-black text-gray-900 leading-snug tracking-wide drop-shadow-sm">
                       {currentLyric.text}
                     </p>
                   </div>
-                  <span className="text-[11px] font-bold text-amber-700 block mt-1">
-                    🎙️ Voice Reciting in Real-Time (Tap to repeat line)
-                  </span>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span className="text-xs font-black text-amber-800 uppercase tracking-wider">
+                      Reciting Aloud 🎵 (Tap banner to repeat)
+                    </span>
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
                 </div>
               )}
             </div>
@@ -257,7 +267,7 @@ export const LessonPlayer: React.FC = () => {
                 />
               </div>
               <div className="flex justify-between items-center text-xs font-black text-amber-900 mt-1 px-1">
-                <span>{elapsedSec}s</span>
+                <span>{Math.floor(elapsedSec)}s</span>
                 <span>{duration}s</span>
               </div>
             </div>
@@ -286,7 +296,7 @@ export const LessonPlayer: React.FC = () => {
                 ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-orange-600'
                 : 'bg-gradient-to-br from-emerald-400 to-green-600 border-green-700'
             }`}
-            title={isPlaying ? 'Pause' : 'Play'}
+            title={isPlaying ? 'Pause' : 'Sing!'}
           >
             {isPlaying ? (
               <Pause className="w-12 h-12 md:w-14 md:h-14 fill-white" />

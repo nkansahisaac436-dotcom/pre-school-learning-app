@@ -1,6 +1,6 @@
 /**
- * Web Audio API Sound Effects Engine for Toddlers / Preschoolers
- * Generates gentle, melodic, joyful sounds without external audio dependencies.
+ * Web Audio API Sound Effects & Melody Synth Engine for Toddlers / Preschoolers
+ * Generates gentle, melodic, joyful sounds and rhythmic musical beats.
  */
 
 class SoundEffectsEngine {
@@ -53,7 +53,7 @@ class SoundEffectsEngine {
       osc.start();
       osc.stop(ctx.currentTime + 0.08);
     } catch {
-      // Audio context policy safe ignore
+      // Audio safe ignore
     }
   }
 
@@ -70,17 +70,17 @@ class SoundEffectsEngine {
         const gain = ctx.createGain();
 
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.06);
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.05);
 
-        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.06);
-        gain.gain.linearRampToValueAtTime(this.volume * 0.35, ctx.currentTime + i * 0.06 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.06 + 0.25);
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.05);
+        gain.gain.linearRampToValueAtTime(this.volume * 0.35, ctx.currentTime + i * 0.05 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.05 + 0.2);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
-        osc.start(ctx.currentTime + i * 0.06);
-        osc.stop(ctx.currentTime + i * 0.06 + 0.25);
+        osc.start(ctx.currentTime + i * 0.05);
+        osc.stop(ctx.currentTime + i * 0.05 + 0.2);
       });
     } catch {
       // Audio safe ignore
@@ -100,17 +100,17 @@ class SoundEffectsEngine {
         const gain = ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.06);
 
-        gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.07);
-        gain.gain.linearRampToValueAtTime(this.volume * 0.4, ctx.currentTime + idx * 0.07 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.4);
+        gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.06);
+        gain.gain.linearRampToValueAtTime(this.volume * 0.4, ctx.currentTime + idx * 0.06 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.06 + 0.35);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
-        osc.start(ctx.currentTime + idx * 0.07);
-        osc.stop(ctx.currentTime + idx * 0.07 + 0.4);
+        osc.start(ctx.currentTime + idx * 0.06);
+        osc.stop(ctx.currentTime + idx * 0.06 + 0.35);
       });
     } catch {
       // Audio safe ignore
@@ -124,13 +124,12 @@ class SoundEffectsEngine {
     if (!ctx) return;
 
     try {
-      // Major triad fanfare: C5, E5, G5, C6 (extended)
       const chord = [
-        { f: 523.25, t: 0.0, d: 0.15 },
-        { f: 659.25, t: 0.15, d: 0.15 },
-        { f: 783.99, t: 0.3, d: 0.2 },
-        { f: 1046.50, t: 0.55, d: 0.6 },
-        { f: 1318.51, t: 0.58, d: 0.6 },
+        { f: 523.25, t: 0.0, d: 0.12 },
+        { f: 659.25, t: 0.12, d: 0.12 },
+        { f: 783.99, t: 0.24, d: 0.16 },
+        { f: 1046.50, t: 0.42, d: 0.5 },
+        { f: 1318.51, t: 0.45, d: 0.5 },
       ];
 
       chord.forEach((item) => {
@@ -141,7 +140,7 @@ class SoundEffectsEngine {
         osc.frequency.setValueAtTime(item.f, ctx.currentTime + item.t);
 
         gain.gain.setValueAtTime(0, ctx.currentTime + item.t);
-        gain.gain.linearRampToValueAtTime(this.volume * 0.45, ctx.currentTime + item.t + 0.03);
+        gain.gain.linearRampToValueAtTime(this.volume * 0.45, ctx.currentTime + item.t + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + item.t + item.d);
 
         osc.connect(gain);
@@ -155,7 +154,7 @@ class SoundEffectsEngine {
     }
   }
 
-  /** Gentle playful boing when a child tries another option (never a harsh buzzer!) */
+  /** Gentle boing */
   public playGentleBoing() {
     if (!this.enabled) return;
     const ctx = this.getContext();
@@ -167,23 +166,23 @@ class SoundEffectsEngine {
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(320, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(260, ctx.currentTime + 0.2);
+      osc.frequency.exponentialRampToValueAtTime(260, ctx.currentTime + 0.18);
 
       gain.gain.setValueAtTime(this.volume * 0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start();
-      osc.stop(ctx.currentTime + 0.25);
+      osc.stop(ctx.currentTime + 0.2);
     } catch {
       // Audio safe ignore
     }
   }
 
-  /** Musical note generator for song visualizer demo melody */
-  public playNote(frequency: number, duration: number = 0.3) {
+  /** Musical note generator for song visualizer demo melody with xylophone warmth */
+  public playNote(frequency: number, duration: number = 0.2) {
     if (!this.enabled) return;
     const ctx = this.getContext();
     if (!ctx) return;
@@ -196,7 +195,7 @@ class SoundEffectsEngine {
       osc.frequency.setValueAtTime(frequency, ctx.currentTime);
 
       gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(this.volume * 0.35, ctx.currentTime + 0.03);
+      gain.gain.linearRampToValueAtTime(this.volume * 0.3, ctx.currentTime + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
 
       osc.connect(gain);
@@ -207,6 +206,19 @@ class SoundEffectsEngine {
     } catch {
       // Safe ignore
     }
+  }
+
+  /** Play a lively nursery rhyme rhythm chord for song transitions */
+  public playRhythmChord(chordType: 'C' | 'G' | 'F' | 'Am' = 'C') {
+    if (!this.enabled) return;
+    const chords = {
+      C: [523.25, 659.25, 783.99],
+      G: [392.00, 493.88, 587.33],
+      F: [349.23, 440.00, 523.25],
+      Am: [440.00, 523.25, 659.25],
+    };
+    const freqs = chords[chordType] || chords.C;
+    freqs.forEach((f) => this.playNote(f, 0.22));
   }
 }
 

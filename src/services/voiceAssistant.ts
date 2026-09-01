@@ -1,12 +1,12 @@
 /**
- * Voice Narrator & Song Reciter for Early Childhood Learning
- * Uses the Web Speech API (SpeechSynthesis) with cheerful, friendly toddler-tuned narration.
+ * Voice Narrator & Upbeat Song Reciter for Early Childhood Learning
+ * Uses Web Speech API with snappy, cheerful, melodic nursery pacing.
  */
 
 class VoiceAssistant {
   private enabled: boolean = true;
-  private speechRate: number = 0.95; // slightly slower for young ears
-  private speechPitch: number = 1.25; // higher, warmer pitch
+  private speechRate: number = 1.12; // Fast, cheerful, musical pace (no awkward pauses!)
+  private speechPitch: number = 1.25; // Warm, friendly, higher toddler pitch
   private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   public setEnabled(enabled: boolean) {
@@ -17,11 +17,11 @@ class VoiceAssistant {
   }
 
   public setRate(rate: number) {
-    this.speechRate = Math.max(0.7, Math.min(1.4, rate));
+    this.speechRate = Math.max(0.9, Math.min(1.4, rate));
   }
 
   public setPitch(pitch: number) {
-    this.speechPitch = Math.max(0.8, Math.min(1.8, pitch));
+    this.speechPitch = Math.max(0.9, Math.min(1.6, pitch));
   }
 
   public stop() {
@@ -39,7 +39,7 @@ class VoiceAssistant {
     return this.currentUtterance !== null;
   }
 
-  /** Clean text of emojis and special characters for speech engines */
+  /** Clean text of emojis and special characters for clear, snappy speech */
   private cleanTextForSpeech(text: string): string {
     return text
       .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F100}-\u{1F1FF}]/gu, '')
@@ -104,14 +104,14 @@ class VoiceAssistant {
     }
   }
 
-  /** Explicitly recite a song lyric line */
+  /** Explicitly recite a song lyric line fast and rhythmically */
   public reciteLyric(lyricText: string) {
     this.speak(lyricText);
   }
 
   /** Speak a letter and word phonics clearly */
   public speakLetter(letter: string, word?: string) {
-    const text = word ? `${letter}! ${letter} is for ${word}!` : `Letter ${letter}!`;
+    const text = word ? `${letter}! ${letter} for ${word}!` : `Letter ${letter}!`;
     this.speak(text);
   }
 
@@ -123,12 +123,12 @@ class VoiceAssistant {
   /** Cheerful praise phrases for children */
   public speakCheer(customMessage?: string, onEnd?: () => void) {
     const cheers = [
-      'Hooray! Wonderful job!',
+      'Hooray! Great job!',
       'Yay! You did it!',
       'Awesome! Super star!',
       'Woohoo! That is right!',
       'Great job, little explorer!',
-      'You are so smart! High five!'
+      'High five! Superstar!'
     ];
     const text = customMessage || cheers[Math.floor(Math.random() * cheers.length)];
     this.speak(text, onEnd);
@@ -137,8 +137,8 @@ class VoiceAssistant {
   /** Gentle encouragement if trying another answer */
   public speakEncouragement(onEnd?: () => void) {
     const encouragements = [
-      'Good try! Let us tap another one!',
-      'Almost! Try again, buddy!',
+      'Good try! Tap another one!',
+      'Almost! Try again!',
       'You can do it! Give it another tap!',
       'Keep looking! Which one matches?'
     ];
