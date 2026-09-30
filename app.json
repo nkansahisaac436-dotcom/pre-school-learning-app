@@ -19,6 +19,18 @@
     },
     "web": {
       "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "083f84fb-f40c-4d3b-b3ab-b1f85bc387bc"
+      }
+    },
+    "owner": "heaven_bound",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/083f84fb-f40c-4d3b-b3ab-b1f85bc387bc"
     }
   }
 }
