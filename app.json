@@ -4,13 +4,8 @@
     "slug": "pre-school-learning-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./public/favicon.svg",
+    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#fef3c7",
-      "resizeMode": "contain"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nkansahisaac.preschoollearning"
