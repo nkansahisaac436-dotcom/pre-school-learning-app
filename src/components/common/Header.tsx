@@ -1,113 +1,108 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { AVATAR_OPTIONS } from '../../data/initialContent';
-import { Volume2, VolumeX, Mic, MicOff, Lock, Trophy, Sparkles } from 'lucide-react';
+import { soundEffects } from '../../services/soundEffects';
+import { voiceAssistant } from '../../services/voiceAssistant';
+import { APP_NAME } from '../../constants/app';
+import { Star, Shield, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { 
     activeProfile, 
-    openParentGate, 
-    settings, 
-    toggleSound, 
-    toggleVoice, 
+    navigateHome, 
     openBadgeModal, 
-    screen, 
-    navigateHome 
+    openParentGate,
+    settings,
+    toggleSound,
+    toggleVoice 
   } = useApp();
 
-  const currentAvatar = AVATAR_OPTIONS.find((a) => a.id === activeProfile.avatar) || AVATAR_OPTIONS[0];
+  const handleLogoClick = () => {
+    soundEffects.playPop();
+    navigateHome();
+  };
 
-  // In child learning screens (lesson or activity), show minimal distraction bar
-  const isMinimal = screen === 'lesson-player' || screen === 'mini-activity';
+  const handleStarClick = () => {
+    openBadgeModal();
+  };
+
+  const handleSettingsClick = () => {
+    voiceAssistant.stop();
+    soundEffects.playPop();
+    openParentGate();
+  };
 
   return (
-    <header className="w-full max-w-6xl mx-auto px-4 py-3 flex items-center justify-between z-30 select-none">
-      {/* Left side: Profile Avatar & Home tap */}
-      <div className="flex items-center gap-3">
-        {screen !== 'home' && screen !== 'splash' && screen !== 'profile-select' && (
-          <button
-            onClick={navigateHome}
-            aria-label="Home"
-            className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-amber-400 border-3 border-amber-500 shadow-md flex items-center justify-center text-2xl kid-btn-pop active:scale-95 transition"
-          >
-            🏠
-          </button>
-        )}
-
-        <button
-          onClick={openBadgeModal}
-          className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur border-2 border-amber-200 shadow-sm hover:border-amber-400 transition kid-btn-pop active:scale-95"
-          title="My Stars and Badges"
-        >
-          <span className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl shadow-inner ${currentAvatar.bgColor}`}>
-            {currentAvatar.emoji}
+    <header className="w-full bg-white/95 backdrop-blur border-b-4 border-amber-200 px-3 md:px-6 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-sm select-none">
+      {/* App Logo & Mascot Pill */}
+      <button
+        onClick={handleLogoClick}
+        aria-label={`${APP_NAME} Home`}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-amber-100 hover:bg-amber-200 border-2 border-amber-400 transition kid-btn-pop"
+      >
+        <span className="text-2xl filter drop-shadow-sm animate-wiggle">⭐</span>
+        <div className="flex flex-col text-left">
+          <span className="font-black text-amber-950 text-base md:text-lg tracking-tight leading-none">
+            {APP_NAME}
           </span>
-          <div className="text-left pr-1 hidden sm:block">
-            <div className="text-sm font-bold text-gray-800 leading-none">{activeProfile.name}</div>
-            <div className="flex items-center gap-1 text-xs font-black text-amber-500 mt-0.5">
-              <span>⭐</span>
-              <span>{activeProfile.starsCount}</span>
-            </div>
-          </div>
-          <span className="sm:hidden text-xs font-black text-amber-500 flex items-center gap-0.5">
-            ⭐ {activeProfile.starsCount}
+          <span className="text-[10px] font-bold text-amber-800 tracking-wide uppercase">
+            Preschool Fun
           </span>
-        </button>
-      </div>
-
-      {/* Center: Star Trophy quick trigger */}
-      {!isMinimal && (
-        <div className="flex items-center">
-          <button
-            onClick={openBadgeModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-950 font-bold text-sm shadow-md border-2 border-yellow-200 kid-btn-pop"
-          >
-            <Trophy className="w-4 h-4 text-amber-900 animate-bounce" />
-            <span className="hidden md:inline">Badge Book</span>
-            <Sparkles className="w-4 h-4 text-yellow-100" />
-          </button>
         </div>
-      )}
+      </button>
 
-      {/* Right side: Audio controls & Parent Lock */}
-      <div className="flex items-center gap-2">
-        {/* Sound FX Toggle */}
-        <button
-          onClick={toggleSound}
-          aria-label={settings.soundFxEnabled ? 'Mute sound effects' : 'Enable sound effects'}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition active:scale-95 ${
-            settings.soundFxEnabled
-              ? 'bg-emerald-100 border-emerald-400 text-emerald-700'
-              : 'bg-gray-100 border-gray-300 text-gray-400'
-          }`}
-          title="Sound Effects"
-        >
-          {settings.soundFxEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </button>
-
-        {/* Voice Narrator Toggle */}
+      {/* Right Controls: Audio Toggles, Stars Won, Parent Lock */}
+      <div className="flex items-center gap-2 md:gap-3">
+        {/* Voice Narration Toggle */}
         <button
           onClick={toggleVoice}
-          aria-label={settings.voiceNarrationEnabled ? 'Mute voice narrator' : 'Enable voice narrator'}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition active:scale-95 ${
+          title={settings.voiceNarrationEnabled ? "Mute Voice" : "Enable Voice"}
+          className={`w-11 h-11 rounded-2xl border-2 flex items-center justify-center transition kid-btn-pop ${
             settings.voiceNarrationEnabled
-              ? 'bg-bubblegum-100 border-bubblegum-400 text-bubblegum-600'
-              : 'bg-gray-100 border-gray-300 text-gray-400'
+              ? "bg-amber-100 border-amber-400 text-amber-900"
+              : "bg-gray-100 border-gray-300 text-gray-400"
           }`}
-          title="Voice Guide"
         >
-          {settings.voiceNarrationEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+          {settings.voiceNarrationEnabled ? (
+            <Mic className="w-5 h-5 text-amber-700" />
+          ) : (
+            <MicOff className="w-5 h-5" />
+          )}
         </button>
 
-        {/* Parental Gate Button */}
+        {/* Sound Effects Toggle */}
         <button
-          onClick={openParentGate}
-          aria-label="Parents & Teachers Area"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 text-white font-medium text-xs shadow hover:bg-slate-900 border-2 border-slate-700 transition active:scale-95"
-          title="Parents & Teachers Area (Gated)"
+          onClick={toggleSound}
+          title={settings.soundFxEnabled ? "Mute Sounds" : "Enable Sounds"}
+          className={`w-11 h-11 rounded-2xl border-2 flex items-center justify-center transition kid-btn-pop ${
+            settings.soundFxEnabled
+              ? "bg-amber-100 border-amber-400 text-amber-900"
+              : "bg-gray-100 border-gray-300 text-gray-400"
+          }`}
         >
-          <Lock className="w-3.5 h-3.5 text-amber-300" />
-          <span className="hidden sm:inline">Parents</span>
+          {settings.soundFxEnabled ? (
+            <Volume2 className="w-5 h-5 text-amber-700" />
+          ) : (
+            <VolumeX className="w-5 h-5" />
+          )}
+        </button>
+
+        {/* Stars Collection Pill */}
+        <button
+          onClick={handleStarClick}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-400 hover:bg-amber-300 border-2 border-yellow-500 text-amber-950 font-black shadow-sm transition kid-btn-pop"
+          title="Your Stars and Badges"
+        >
+          <Star className="w-5 h-5 fill-amber-950 text-amber-950 animate-spin-slow" />
+          <span className="text-base">{activeProfile.starsCount || 0}</span>
+        </button>
+
+        {/* Gated Parent Lock Button */}
+        <button
+          onClick={handleSettingsClick}
+          className="w-11 h-11 rounded-2xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-300 text-slate-700 flex items-center justify-center transition kid-btn-pop shadow-sm"
+          title="Parent Dashboard (Gated)"
+        >
+          <Shield className="w-5 h-5" />
         </button>
       </div>
     </header>

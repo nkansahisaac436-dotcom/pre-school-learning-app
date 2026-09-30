@@ -1,4 +1,4 @@
-export type AvatarId = 'lion' | 'bunny' | 'bear' | 'kitty' | 'puppy' | 'dino' | 'panda' | 'monkey';
+export type AvatarId = 'sparky' | 'lion' | 'bunny' | 'bear' | 'kitty' | 'puppy' | 'dino' | 'panda' | 'monkey';
 
 export interface AvatarOption {
   id: AvatarId;

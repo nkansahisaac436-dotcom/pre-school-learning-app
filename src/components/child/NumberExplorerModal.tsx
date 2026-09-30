@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
-import { X, Play, Square, Sparkles } from 'lucide-react';
+import { numberToWords } from '../../constants/app';
+import { X, Play, Square, Sparkles, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -9,60 +10,62 @@ interface Props {
   onClose: () => void;
 }
 
-type NumberTab = 'tens' | 'first20' | 'all100';
-
 export const NumberExplorerModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<NumberTab>('all100');
   const [activeNumber, setActiveNumber] = useState<number | null>(null);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
-  const autoPlayIndexRef = useRef(0);
-  const autoPlayTimerRef = useRef<number | null>(null);
+  const [isCountingAloud, setIsCountingAloud] = useState(false);
+  const [numberFilter, setNumberFilter] = useState<'all' | '10s' | '1-20'>('all');
+
+  const countAloudCurrentRef = useRef(1);
+  const countAloudTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
-      setIsAutoPlaying(false);
-      if (autoPlayTimerRef.current !== null) {
-        window.clearInterval(autoPlayTimerRef.current);
+      setIsCountingAloud(false);
+      setActiveNumber(null);
+      if (countAloudTimerRef.current !== null) {
+        window.clearInterval(countAloudTimerRef.current);
       }
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // Build numbers arrays
-  const numbers1To100 = Array.from({ length: 100 }, (_, i) => i + 1);
-  const numbersFirst20 = Array.from({ length: 20 }, (_, i) => i + 1);
-  const numbersTensAndAbove = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 500, 1000];
+  // Number dataset
+  const numbers1to100 = Array.from({ length: 100 }, (_, i) => i + 1);
+  const bigNumbers = [200, 500, 1000];
+  let visibleNumbers = [...numbers1to100, ...bigNumbers];
 
-  const currentNumbers =
-    activeTab === 'first20'
-      ? numbersFirst20
-      : activeTab === 'tens'
-      ? numbersTensAndAbove
-      : numbers1To100;
+  if (numberFilter === '10s') {
+    visibleNumbers = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 500, 1000];
+  } else if (numberFilter === '1-20') {
+    visibleNumbers = Array.from({ length: 20 }, (_, i) => i + 1);
+  }
 
   const handleNumberTap = (num: number) => {
     setActiveNumber(num);
-    const baseFreq = 260 + ((num % 20) / 20) * 440;
-    soundEffects.playNote(baseFreq, 0.2);
-    voiceAssistant.speakNumber(num);
+    soundEffects.playNote(300 + (num % 12) * 35, 0.2);
+    // Uses full English word (e.g. 67 -> "sixty-seven") to guarantee zero cutoffs
+    voiceAssistant.speakNumber(num, () => {
+      // Clear highlight on finish
+      setActiveNumber((prev) => (prev === num ? null : prev));
+    });
   };
 
-  const handleToggleAutoPlay = () => {
-    if (isAutoPlaying) {
-      setIsAutoPlaying(false);
+  const handleToggleCountAloud = () => {
+    if (isCountingAloud) {
+      setIsCountingAloud(false);
       voiceAssistant.stop();
-      if (autoPlayTimerRef.current !== null) {
-        window.clearInterval(autoPlayTimerRef.current);
+      if (countAloudTimerRef.current !== null) {
+        window.clearInterval(countAloudTimerRef.current);
       }
     } else {
-      setIsAutoPlaying(true);
-      autoPlayIndexRef.current = 0;
+      setIsCountingAloud(true);
+      countAloudCurrentRef.current = 0;
       soundEffects.playPop();
 
-      const playNextNumber = () => {
-        if (autoPlayIndexRef.current >= currentNumbers.length) {
-          setIsAutoPlaying(false);
+      const countNext = () => {
+        if (countAloudCurrentRef.current >= visibleNumbers.length) {
+          setIsCountingAloud(false);
           setActiveNumber(null);
           soundEffects.playRewardFanfare();
           try {
@@ -70,22 +73,29 @@ export const NumberExplorerModal: React.FC<Props> = ({ isOpen, onClose }) => {
           } catch {
             // ignore
           }
-          voiceAssistant.speak('Hooray! You recited all the numbers all the way to one hundred and beyond!');
+          voiceAssistant.speak('Hooray! You counted all the way!');
           return;
         }
 
-        const currentNum = currentNumbers[autoPlayIndexRef.current];
+        const currentNum = visibleNumbers[countAloudCurrentRef.current];
         setActiveNumber(currentNum);
-        const baseFreq = 260 + ((currentNum % 20) / 20) * 440;
-        soundEffects.playNote(baseFreq, 0.18);
+        soundEffects.playNote(350 + (currentNum % 10) * 35, 0.2);
         voiceAssistant.speakNumber(currentNum);
-        autoPlayIndexRef.current += 1;
+        countAloudCurrentRef.current += 1;
       };
 
-      playNextNumber();
-      // Faster count for 100 numbers, slightly paced for tens
-      const intervalMs = activeTab === 'all100' ? 1000 : 1200;
-      autoPlayTimerRef.current = window.setInterval(playNextNumber, intervalMs);
+      countNext();
+      countAloudTimerRef.current = window.setInterval(countNext, 1800);
+    }
+  };
+
+  const handleResetCount = () => {
+    voiceAssistant.stop();
+    setIsCountingAloud(false);
+    setActiveNumber(null);
+    countAloudCurrentRef.current = 0;
+    if (countAloudTimerRef.current !== null) {
+      window.clearInterval(countAloudTimerRef.current);
     }
   };
 
@@ -107,129 +117,144 @@ export const NumberExplorerModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {/* Modal Header */}
         <div className="text-center pb-4 border-b-2 border-sunshine-200">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sunshine-100 text-sunshine-900 font-black text-sm mb-2 border border-sunshine-300">
-            <span>💯 Interactive 1 to 100+ Number Explorer</span>
-            <Sparkles className="w-4 h-4 text-sunshine-600" />
+            <span>💯 1 to 100+ Interactive Number Explorer</span>
+            <Sparkles className="w-4 h-4 text-sunshine-500" />
           </div>
           <h2 className="text-2xl md:text-3xl font-black text-sunshine-600 leading-tight">
-            Tap Any Number to Hear It Count Aloud!
+            Tap Any Number to Hear It Spoken Aloud!
           </h2>
           <p className="text-xs md:text-sm text-gray-600 font-semibold mt-1">
-            Tap numbers from 1 to 100 and above (100, 200, 500, 1000)!
+            Tap numbers to learn full English words (e.g. 67 = "sixty-seven")!
           </p>
 
-          {/* Tab Navigation & Autoplay */}
+          {/* Filter Tabs & Count Aloud Controls */}
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-            <div className="flex bg-sunshine-100 p-1 rounded-2xl border border-sunshine-300">
+            <div className="inline-flex bg-amber-100/80 p-1 rounded-2xl border border-amber-300">
               <button
                 onClick={() => {
-                  setActiveTab('all100');
-                  soundEffects.playPop();
+                  setNumberFilter('all');
+                  handleResetCount();
                 }}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs transition ${
-                  activeTab === 'all100' ? 'bg-amber-500 text-white shadow' : 'text-amber-900 hover:bg-sunshine-200'
+                className={`px-3.5 py-1.5 rounded-xl font-black text-xs md:text-sm transition ${
+                  numberFilter === 'all'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-amber-900 hover:bg-amber-200/60'
                 }`}
               >
-                All 1 to 100 💯
+                All 1 to 100+ 💯
               </button>
               <button
                 onClick={() => {
-                  setActiveTab('tens');
-                  soundEffects.playPop();
+                  setNumberFilter('10s');
+                  handleResetCount();
                 }}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs transition ${
-                  activeTab === 'tens' ? 'bg-amber-500 text-white shadow' : 'text-amber-900 hover:bg-sunshine-200'
+                className={`px-3.5 py-1.5 rounded-xl font-black text-xs md:text-sm transition ${
+                  numberFilter === '10s'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-amber-900 hover:bg-amber-200/60'
                 }`}
               >
-                Count by 10s & 100+ 🚀
+                By 10s (10, 20.. 100) 🚀
               </button>
               <button
                 onClick={() => {
-                  setActiveTab('first20');
-                  soundEffects.playPop();
+                  setNumberFilter('1-20');
+                  handleResetCount();
                 }}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs transition ${
-                  activeTab === 'first20' ? 'bg-amber-500 text-white shadow' : 'text-amber-900 hover:bg-sunshine-200'
+                className={`px-3.5 py-1.5 rounded-xl font-black text-xs md:text-sm transition ${
+                  numberFilter === '1-20'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-amber-900 hover:bg-amber-200/60'
                 }`}
               >
                 Numbers 1 to 20 ⭐
               </button>
             </div>
 
+            {/* Count Aloud Mode Button */}
             <button
-              onClick={handleToggleAutoPlay}
-              className={`px-4 py-2 rounded-2xl font-black text-xs md:text-sm flex items-center gap-1.5 shadow-md transition kid-btn-pop ${
-                isAutoPlaying
+              onClick={handleToggleCountAloud}
+              className={`px-4 py-1.5 rounded-2xl font-black text-xs md:text-sm flex items-center gap-2 shadow-sm transition kid-btn-pop ${
+                isCountingAloud
                   ? 'bg-rose-500 hover:bg-rose-600 text-white'
                   : 'bg-emerald-500 hover:bg-emerald-600 text-white'
               }`}
             >
-              {isAutoPlaying ? (
+              {isCountingAloud ? (
                 <>
                   <Square className="w-4 h-4 fill-white" />
-                  <span>Pause Reciting</span>
+                  <span>Pause Counting</span>
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4 fill-white" />
-                  <span>Recite Count Aloud 🎙️</span>
+                  <span>Count Aloud 🎙️</span>
                 </>
               )}
             </button>
+
+            {isCountingAloud && (
+              <button
+                onClick={handleResetCount}
+                className="p-1.5 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700"
+                title="Reset Count"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Number Grid */}
-        <div
-          className={`overflow-y-auto py-4 grid gap-2 md:gap-2.5 ${
-            activeTab === 'tens'
-              ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'
-              : 'grid-cols-5 sm:grid-cols-8 md:grid-cols-10'
-          }`}
-        >
-          {currentNumbers.map((num) => {
+        {/* Numbers Grid */}
+        <div className="overflow-y-auto py-4 grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 md:gap-3">
+          {visibleNumbers.map((num) => {
             const isActive = activeNumber === num;
-            const isMilestone = num % 10 === 0 || num >= 100;
+            const isMilestone = num > 100;
+            const isTen = num % 10 === 0 && num <= 100;
 
             return (
               <button
                 key={num}
                 onClick={() => handleNumberTap(num)}
-                className={`p-2 sm:p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition duration-150 kid-btn-pop relative ${
+                className={`p-2.5 md:p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition duration-150 kid-btn-pop relative ${
                   isActive
-                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white border-white scale-110 shadow-xl ring-4 ring-amber-300 z-10'
+                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white border-white scale-110 shadow-2xl ring-4 ring-amber-300 z-10'
                     : isMilestone
-                    ? 'bg-sunshine-100 hover:bg-sunshine-200 border-sunshine-400 text-amber-950 font-black'
-                    : 'bg-white hover:bg-amber-50 border-amber-200 text-gray-800'
+                    ? 'bg-purple-100 hover:bg-purple-200 border-purple-400 text-purple-900 font-black'
+                    : isTen
+                    ? 'bg-amber-100 hover:bg-amber-200 border-amber-400 text-amber-950 font-black'
+                    : 'bg-white hover:bg-yellow-50 border-yellow-200 text-gray-800'
                 }`}
               >
                 <span
-                  className={`font-black leading-none drop-shadow-xs ${
-                    num >= 100 ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'
-                  }`}
+                  className={`font-black leading-none ${
+                    num >= 100 ? 'text-sm md:text-base' : 'text-lg md:text-2xl'
+                  } ${isActive ? 'text-white' : ''}`}
                 >
                   {num}
                 </span>
-
-                {isMilestone && (
-                  <span className="text-[10px] text-amber-600 mt-0.5">
-                    {num === 100 ? '💯' : num >= 200 ? '🚀' : '⭐'}
-                  </span>
-                )}
+                <span
+                  className={`text-[9px] font-bold mt-1 leading-none ${
+                    isActive ? 'text-amber-100' : 'text-gray-400'
+                  }`}
+                >
+                  {numberToWords(num)}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Bottom Banner */}
+        {/* Bottom Done Banner */}
         <div className="pt-3 border-t-2 border-sunshine-100 flex justify-center">
           <button
             onClick={() => {
               voiceAssistant.stop();
               onClose();
             }}
-            className="w-full max-w-md py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-base shadow-md kid-btn-pop"
+            className="w-full max-w-md py-3 rounded-2xl bg-sunshine-500 hover:bg-sunshine-600 text-amber-950 font-black text-base shadow-md kid-btn-pop"
           >
-            Done Counting 🚀
+            Done with Numbers 💯
           </button>
         </div>
       </div>

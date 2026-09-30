@@ -1,23 +1,24 @@
 {
   "expo": {
-    "name": "ikj_system - Pre-School Learning",
-    "slug": "pre-school-learning-app",
+    "name": "Little Sparks",
+    "slug": "little-sparks",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nkansahisaac.preschoollearning"
+      "bundleIdentifier": "com.nkansahisaac.littlesparks"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#fef3c7"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FEF3C7"
       },
-      "package": "com.nkansahisaac.preschoollearning"
+      "package": "com.nkansahisaac.littlesparks"
     },
     "web": {
-      "favicon": "./public/favicon.svg"
+      "favicon": "./assets/icon.png"
     }
   }
 }

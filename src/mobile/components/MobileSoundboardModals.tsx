@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useMobileApp } from '../context/MobileAppContext';
 import { nativeSpeech } from '../services/nativeSpeech';
+import { numberToWords } from '../../constants/app';
 import { 
   ALPHABET_A_TO_Z_ITEMS, 
   COLOR_ITEMS, 
@@ -21,11 +22,27 @@ export const MobileSoundboardModals: React.FC = () => {
   const { activeModal, setActiveModal, badges, activeProfile, setScreen } = useMobileApp();
   const [checkedHabits, setCheckedHabits] = useState<string[]>([]);
   const [numberFilter, setNumberFilter] = useState<'all' | '10s' | '1-20'>('all');
+  const [activeSpokenNumber, setActiveSpokenNumber] = useState<number | null>(null);
+  const [isCountingAloud, setIsCountingAloud] = useState(false);
+
+  const countAloudIndexRef = useRef(0);
+  const countAloudTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (activeModal === 'none') {
+      setIsCountingAloud(false);
+      setActiveSpokenNumber(null);
+      if (countAloudTimerRef.current) clearInterval(countAloudTimerRef.current);
+    }
+  }, [activeModal]);
 
   if (activeModal === 'none') return null;
 
   const handleClose = () => {
     nativeSpeech.stop();
+    setIsCountingAloud(false);
+    setActiveSpokenNumber(null);
+    if (countAloudTimerRef.current) clearInterval(countAloudTimerRef.current);
     setActiveModal('none');
   };
 
@@ -38,6 +55,41 @@ export const MobileSoundboardModals: React.FC = () => {
   } else if (numberFilter === '1-20') {
     visibleNumbers = Array.from({ length: 20 }, (_, i) => i + 1);
   }
+
+  const handleTapNumber = (num: number) => {
+    setActiveSpokenNumber(num);
+    // Speaks full word ("sixty-seven") and clears highlight on finish
+    nativeSpeech.speakNumber(num, () => {
+      setActiveSpokenNumber((prev) => (prev === num ? null : prev));
+    });
+  };
+
+  const handleToggleCountAloud = () => {
+    if (isCountingAloud) {
+      setIsCountingAloud(false);
+      nativeSpeech.stop();
+      if (countAloudTimerRef.current) clearInterval(countAloudTimerRef.current);
+    } else {
+      setIsCountingAloud(true);
+      countAloudIndexRef.current = 0;
+
+      const playNext = () => {
+        if (countAloudIndexRef.current >= visibleNumbers.length) {
+          setIsCountingAloud(false);
+          setActiveSpokenNumber(null);
+          nativeSpeech.speakCheer('Awesome! You counted all the numbers!');
+          return;
+        }
+        const curNum = visibleNumbers[countAloudIndexRef.current];
+        setActiveSpokenNumber(curNum);
+        nativeSpeech.speakNumber(curNum);
+        countAloudIndexRef.current += 1;
+      };
+
+      playNext();
+      countAloudTimerRef.current = setInterval(playNext, 1800) as unknown as number;
+    }
+  };
 
   return (
     <Modal visible={true} transparent animationType="slide">
@@ -90,41 +142,74 @@ export const MobileSoundboardModals: React.FC = () => {
             </ScrollView>
           )}
 
-          {/* 2. NUMBERS MODAL */}
+          {/* 2. NUMBERS MODAL (FIXED FULL WORD PRONUNCIATION) */}
           {activeModal === 'numbers' && (
             <ScrollView contentContainerStyle={styles.gridContainer}>
+              {/* Filter Tabs & Count Aloud */}
               <View style={styles.filterRow}>
                 <TouchableOpacity 
-                  onPress={() => setNumberFilter('all')}
+                  onPress={() => {
+                    setNumberFilter('all');
+                    setIsCountingAloud(false);
+                  }}
                   style={[styles.filterTab, numberFilter === 'all' && styles.filterTabActive]}
                 >
                   <Text style={[styles.filterTabText, numberFilter === 'all' && styles.filterTabTextActive]}>1-100</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  onPress={() => setNumberFilter('10s')}
+                  onPress={() => {
+                    setNumberFilter('10s');
+                    setIsCountingAloud(false);
+                  }}
                   style={[styles.filterTab, numberFilter === '10s' && styles.filterTabActive]}
                 >
                   <Text style={[styles.filterTabText, numberFilter === '10s' && styles.filterTabTextActive]}>By 10s</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  onPress={() => setNumberFilter('1-20')}
+                  onPress={() => {
+                    setNumberFilter('1-20');
+                    setIsCountingAloud(false);
+                  }}
                   style={[styles.filterTab, numberFilter === '1-20' && styles.filterTabActive]}
                 >
                   <Text style={[styles.filterTabText, numberFilter === '1-20' && styles.filterTabTextActive]}>1 to 20</Text>
                 </TouchableOpacity>
               </View>
 
+              {/* Count Aloud Button */}
+              <TouchableOpacity
+                onPress={handleToggleCountAloud}
+                style={[styles.countAloudBtn, isCountingAloud && styles.countAloudBtnActive]}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.countAloudBtnText}>
+                  {isCountingAloud ? '⏸️ Pause Counting' : '🎙️ Count Aloud Mode (1, 2, 3..)'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Number Tiles Grid */}
               <View style={styles.numbersFlexGrid}>
-                {visibleNumbers.map((num) => (
-                  <TouchableOpacity
-                    key={num}
-                    onPress={() => nativeSpeech.speakNumber(num)}
-                    style={styles.numberTile}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.numberTileText}>{num}</Text>
-                  </TouchableOpacity>
-                ))}
+                {visibleNumbers.map((num) => {
+                  const isHighlighted = activeSpokenNumber === num;
+                  return (
+                    <TouchableOpacity
+                      key={num}
+                      onPress={() => handleTapNumber(num)}
+                      style={[
+                        styles.numberTile,
+                        isHighlighted && styles.numberTileHighlighted,
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.numberTileText, isHighlighted && styles.numberTileTextHighlighted]}>
+                        {num}
+                      </Text>
+                      <Text style={[styles.numberWordHint, isHighlighted && styles.numberWordHintHighlighted]}>
+                        {numberToWords(num)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </ScrollView>
           )}
@@ -238,7 +323,7 @@ export const MobileSoundboardModals: React.FC = () => {
           {/* 8. PARENT GATE MODAL */}
           {activeModal === 'parent-gate' && (
             <View style={styles.gateBox}>
-              <Text style={styles.gateQuestion}>Parent Check: What is 3 + 4?</Text>
+              <Text style={styles.gateQuestion}>Parent Check: What is 4 + 5?</Text>
               <View style={styles.gateAnswersRow}>
                 <TouchableOpacity
                   onPress={() => {
@@ -247,19 +332,19 @@ export const MobileSoundboardModals: React.FC = () => {
                   }}
                   style={styles.gateAnswerBtn}
                 >
-                  <Text style={styles.gateAnswerText}>7 (Correct)</Text>
+                  <Text style={styles.gateAnswerText}>9 (Correct)</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleClose}
                   style={styles.gateAnswerBtn}
                 >
-                  <Text style={styles.gateAnswerText}>5</Text>
+                  <Text style={styles.gateAnswerText}>6</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleClose}
                   style={styles.gateAnswerBtn}
                 >
-                  <Text style={styles.gateAnswerText}>9</Text>
+                  <Text style={styles.gateAnswerText}>8</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -293,7 +378,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#1e293b',
   },
@@ -358,7 +443,7 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   filterTab: {
     flex: 1,
@@ -378,6 +463,21 @@ const styles = StyleSheet.create({
   filterTabTextActive: {
     color: '#ffffff',
   },
+  countAloudBtn: {
+    backgroundColor: '#10b981',
+    paddingVertical: 10,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  countAloudBtnActive: {
+    backgroundColor: '#f43f5e',
+  },
+  countAloudBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '900',
+  },
   numbersFlexGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -386,18 +486,36 @@ const styles = StyleSheet.create({
   },
   numberTile: {
     width: '22%',
-    aspectRatio: 1.2,
+    aspectRatio: 1.1,
     backgroundColor: '#fef3c7',
     borderWidth: 2,
     borderColor: '#f59e0b',
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 2,
+  },
+  numberTileHighlighted: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#b45309',
+    transform: [{ scale: 1.08 }],
   },
   numberTileText: {
     fontSize: 16,
     fontWeight: '900',
     color: '#78350f',
+  },
+  numberTileTextHighlighted: {
+    color: '#ffffff',
+  },
+  numberWordHint: {
+    fontSize: 7,
+    fontWeight: '700',
+    color: '#92400e',
+    textAlign: 'center',
+  },
+  numberWordHintHighlighted: {
+    color: '#fef3c7',
   },
   colorTile: {
     width: '47%',

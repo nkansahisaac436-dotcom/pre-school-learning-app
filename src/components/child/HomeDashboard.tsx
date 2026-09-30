@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { Topic } from '../../types';
 import { soundEffects } from '../../services/soundEffects';
@@ -16,8 +16,19 @@ export const HomeDashboard: React.FC = () => {
     openColorsModal,
     openShapesModal,
     openAnimalsModal,
-    openHabitsModal
+    openHabitsModal 
   } = useApp();
+
+  const [isSparkyWinking, setIsSparkyWinking] = useState(false);
+
+  const handleSparkyTap = () => {
+    setIsSparkyWinking(true);
+    soundEffects.playSparkleStar();
+    voiceAssistant.speak(`Hi ${activeProfile.name}! Sparky loves you! Let us sing a fun song!`);
+    setTimeout(() => {
+      setIsSparkyWinking(false);
+    }, 1800);
+  };
 
   const handleTopicTap = (topic: Topic) => {
     selectTopicAndNavigate(topic);
@@ -28,14 +39,39 @@ export const HomeDashboard: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-4 md:py-6 flex flex-col items-center select-none">
-      {/* Friendly Visual Banner */}
-      <div className="w-full text-center mb-5">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border-2 border-amber-300 shadow-sm text-amber-900 font-black text-sm md:text-base mb-2">
-          <span>👋 Welcome back, {activeProfile.name}!</span>
+    <div className="w-full max-w-5xl mx-auto px-4 py-4 md:py-6 flex flex-col items-center select-none">
+      {/* Friendly Mascot Greeting Banner */}
+      <div className="w-full flex flex-col items-center text-center mb-6">
+        {/* Sparky Interactive Mascot */}
+        <button
+          onClick={handleSparkyTap}
+          className="relative group cursor-pointer active:scale-95 transition-transform duration-200 mb-2 focus:outline-none"
+          title="Tap Sparky to hear him speak!"
+        >
+          <div className="relative">
+            <img
+              src="/sparky.png"
+              alt="Sparky"
+              className={`w-24 h-24 md:w-28 md:h-28 object-contain filter drop-shadow-md transition-transform duration-300 ${
+                isSparkyWinking ? 'scale-110 rotate-6' : 'group-hover:scale-105 animate-bounce-slow'
+              }`}
+            />
+            {isSparkyWinking && (
+              <div className="absolute -top-1 -right-1 text-2xl animate-spin">✨</div>
+            )}
+          </div>
+          <span className="text-[11px] font-black text-amber-800 bg-amber-200/90 px-3 py-0.5 rounded-full border border-amber-300 shadow-sm block mt-1">
+            Tap Sparky! ⭐
+          </span>
+        </button>
+
+        {/* Greeting Header */}
+        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/95 border-2 border-amber-300 shadow-sm text-amber-900 font-black text-sm md:text-base mb-2">
+          <span>Hello, {activeProfile.name}! 👋</span>
           <Sparkles className="w-4 h-4 text-amber-500 animate-spin" />
         </div>
-        <h2 className="text-3xl md:text-5xl font-black text-amber-950 tracking-tight flex items-center justify-center gap-2">
+
+        <h2 className="text-2xl md:text-4xl font-black text-amber-950 tracking-tight flex items-center justify-center gap-2 leading-snug">
           <span>What should we learn today?</span>
           <span>🎶</span>
         </h2>
@@ -44,8 +80,8 @@ export const HomeDashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Interactive Quick Soundboard Launchers Grid */}
-      <div className="w-full max-w-5xl mb-6">
+      {/* Interactive Touchboards Grid */}
+      <div className="w-full mb-6">
         <div className="flex items-center gap-2 mb-2 px-1">
           <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
           <span className="text-xs font-black uppercase tracking-wider text-amber-900">
@@ -53,11 +89,11 @@ export const HomeDashboard: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {/* A to Z Button */}
           <button
             onClick={openAlphabetModal}
-            className="p-3 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white border-2 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group"
+            className="p-3.5 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🔤</span>
             <span className="font-black text-xs mt-1 leading-tight">A to Z Board</span>
@@ -67,7 +103,7 @@ export const HomeDashboard: React.FC = () => {
           {/* 1 to 100+ Numbers Button */}
           <button
             onClick={openNumberModal}
-            className="p-3 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-amber-950 border-2 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group"
+            className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-amber-950 border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">💯</span>
             <span className="font-black text-xs mt-1 leading-tight text-amber-950">1-100+ Grid</span>
@@ -77,17 +113,17 @@ export const HomeDashboard: React.FC = () => {
           {/* Colors Button */}
           <button
             onClick={openColorsModal}
-            className="p-3 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-500 text-white border-2 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group"
+            className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🎨</span>
-            <span className="font-black text-xs mt-1 leading-tight">Rainbow Palette</span>
+            <span className="font-black text-xs mt-1 leading-tight">Rainbow Colors</span>
             <span className="text-[10px] text-sky-100 font-bold">12 Colors</span>
           </button>
 
           {/* Shapes Button */}
           <button
             onClick={openShapesModal}
-            className="p-3 rounded-2xl bg-gradient-to-br from-purple-400 to-grape-500 text-white border-2 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group"
+            className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-400 to-grape-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🔷</span>
             <span className="font-black text-xs mt-1 leading-tight">Shape Board</span>
@@ -97,7 +133,7 @@ export const HomeDashboard: React.FC = () => {
           {/* Animals Button */}
           <button
             onClick={openAnimalsModal}
-            className="p-3 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 text-white border-2 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group"
+            className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🦁</span>
             <span className="font-black text-xs mt-1 leading-tight">Safari Sounds</span>
@@ -107,7 +143,7 @@ export const HomeDashboard: React.FC = () => {
           {/* Habits Button */}
           <button
             onClick={openHabitsModal}
-            className="p-3 rounded-2xl bg-gradient-to-br from-orange-400 to-coral-500 text-white border-2 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group"
+            className="p-3.5 rounded-2xl bg-gradient-to-br from-orange-400 to-coral-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🧼</span>
             <span className="font-black text-xs mt-1 leading-tight">Healthy Hero</span>
@@ -117,9 +153,8 @@ export const HomeDashboard: React.FC = () => {
       </div>
 
       {/* Grid of Big Colorful Topic Tiles */}
-      <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl">
+      <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
         {topics.map((topic) => {
-          // Calculate topic lessons completed
           const topicLessons = lessons.filter((l) => l.topicId === topic.id);
           const completedCount = topicLessons.filter((l) =>
             activeProfile.completedLessons.includes(l.id)
@@ -132,23 +167,23 @@ export const HomeDashboard: React.FC = () => {
               onClick={() => handleTopicTap(topic)}
               onMouseEnter={handleTopicHover}
               aria-label={`Explore ${topic.name}`}
-              className={`group relative rounded-3xl p-5 md:p-7 border-4 ${topic.colorTheme.border} ${topic.colorTheme.bg} transition duration-200 kid-card flex flex-col items-center justify-between text-center overflow-hidden aspect-square sm:aspect-auto sm:min-h-[220px] active:scale-95`}
+              className={`group relative rounded-3xl p-5 md:p-6 border-4 ${topic.colorTheme.border} ${topic.colorTheme.bg} transition duration-200 kid-card flex flex-col items-center justify-between text-center overflow-hidden min-h-[190px] md:min-h-[210px] active:scale-95`}
             >
-              {/* Subtle background glow */}
+              {/* Subtle gradient background hover glow */}
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${topic.colorTheme.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-300 pointer-events-none`}
               />
 
-              {/* Top status indicator: Star completion */}
+              {/* Status Header */}
               <div className="w-full flex items-center justify-between z-10">
                 {hasBadge ? (
                   <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-amber-950 font-black text-xs shadow-sm border border-yellow-200">
                     <Star className="w-3.5 h-3.5 fill-amber-950" />
-                    <span>Won!</span>
+                    <span>Mastered!</span>
                   </span>
                 ) : (
-                  <span className="text-xs font-black text-gray-500 bg-white/80 px-2 py-0.5 rounded-full border">
-                    {completedCount}/{topicLessons.length}
+                  <span className="text-xs font-black text-gray-600 bg-white/90 px-2.5 py-0.5 rounded-full border border-gray-200">
+                    {completedCount}/{topicLessons.length} Done
                   </span>
                 )}
 
@@ -166,21 +201,21 @@ export const HomeDashboard: React.FC = () => {
                 </span>
               </div>
 
-              {/* Big Icon / Emoji */}
+              {/* Big Icon */}
               <div className="my-auto transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 z-10">
-                <span className="text-6xl md:text-7xl filter drop-shadow-md inline-block">
+                <span className="text-5xl md:text-6xl filter drop-shadow-md inline-block">
                   {topic.iconEmoji}
                 </span>
               </div>
 
-              {/* Big Friendly Topic Name */}
+              {/* Topic Name */}
               <div className="z-10 w-full">
                 <div
-                  className={`text-xl md:text-2xl font-black ${topic.colorTheme.text} leading-tight drop-shadow-sm tracking-wide`}
+                  className={`text-lg md:text-xl font-black ${topic.colorTheme.text} leading-tight drop-shadow-sm tracking-wide`}
                 >
                   {topic.name}
                 </div>
-                <div className="text-[11px] font-bold text-gray-500 mt-1">
+                <div className="text-[11px] font-bold text-gray-500 mt-0.5">
                   {topicLessons.length} Songs & Activities
                 </div>
               </div>

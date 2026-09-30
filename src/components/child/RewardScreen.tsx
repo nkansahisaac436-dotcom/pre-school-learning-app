@@ -2,157 +2,151 @@ import React, { useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
+import { MASCOT_NAME } from '../../constants/app';
+import { Star, RotateCcw, Home, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { RotateCcw, Home, Trophy, Sparkles } from 'lucide-react';
 
 export const RewardScreen: React.FC = () => {
-  const {
-    activeProfile,
-    recentBadgeUnlocked,
-    clearRecentBadge,
-    setScreen,
-    openBadgeModal,
-  } = useApp();
+  const { selectedLesson, startLesson, navigateHome, recentBadgeUnlocked, clearRecentBadge } = useApp();
 
   useEffect(() => {
-    // Fanfare and double confetti blast
+    // Grand celebration fanfare and star confetti burst!
     soundEffects.playRewardFanfare();
+    voiceAssistant.speakCheer(`${MASCOT_NAME} says hooray! You earned 3 shiny stars!`);
 
-    const end = Date.now() + 1500;
-    const interval = window.setInterval(() => {
-      if (Date.now() > end) {
-        window.clearInterval(interval);
-        return;
-      }
-      try {
+    try {
+      const end = Date.now() + 2 * 1000;
+      const colors = ['#FFC93C', '#FF9F1C', '#4DA3E8', '#10B981', '#F43F5E'];
+
+      (function frame() {
         confetti({
-          startVelocity: 30,
-          spread: 360,
-          ticks: 60,
-          origin: {
-            x: Math.random() * 0.4 + 0.3,
-            y: Math.random() * 0.4 + 0.2,
-          },
-          colors: ['#fbbf24', '#f43f5e', '#3b82f6', '#10b981', '#a855f7'],
+          particleCount: 4,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors,
         });
-      } catch {
-        // Safe ignore
-      }
-    }, 300);
+        confetti({
+          particleCount: 4,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors,
+        });
 
-    const voiceMsg = recentBadgeUnlocked
-      ? `Hooray! You earned the ${recentBadgeUnlocked.title} badge and 3 golden stars!`
-      : `Super job! You earned 3 shiny stars!`;
-    voiceAssistant.speak(voiceMsg);
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    } catch {
+      // safe fallback
+    }
 
     return () => {
-      window.clearInterval(interval);
+      clearRecentBadge();
     };
-  }, [recentBadgeUnlocked]);
+  }, [clearRecentBadge]);
 
   const handleSingAgain = () => {
-    clearRecentBadge();
     soundEffects.playPop();
-    setScreen('lesson-player');
+    if (selectedLesson) {
+      startLesson(selectedLesson);
+    } else {
+      navigateHome();
+    }
   };
 
-  const handleGoHome = () => {
-    clearRecentBadge();
+  const handleHome = () => {
     soundEffects.playPop();
-    setScreen('home');
+    navigateHome();
   };
 
   return (
-    <div className="min-h-[85vh] w-full max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-center text-center select-none animate-pop-in">
-      {/* Celebration Card */}
-      <div className="w-full bg-white rounded-3xl p-6 md:p-10 shadow-2xl border-4 border-amber-400 relative overflow-hidden">
-        {/* Floating sparkles */}
-        <div className="absolute top-4 left-6 text-4xl animate-bounce-slow">✨</div>
-        <div className="absolute top-6 right-6 text-4xl animate-float-star">🌟</div>
+    <div className="w-full max-w-lg mx-auto p-4 flex flex-col items-center justify-center min-h-[85vh] select-none">
+      <div className="w-full bg-white rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-300 text-center relative overflow-hidden animate-pop-in">
+        {/* Subtle background glow */}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-100/60 via-white to-amber-50 pointer-events-none" />
 
-        {/* Celebration Title */}
-        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-100 border-2 border-amber-300 text-amber-900 font-black text-base mb-4 shadow-sm">
-          <Sparkles className="w-5 h-5 text-amber-600 animate-spin" />
-          <span>YOU ARE AWESOME!</span>
-          <Sparkles className="w-5 h-5 text-amber-600 animate-spin" />
+        {/* Jumping Sparky Mascot Celebration */}
+        <div className="relative mb-3 z-10">
+          <img
+            src="/sparky.png"
+            alt={MASCOT_NAME}
+            className="w-28 h-28 md:w-36 md:h-36 object-contain filter drop-shadow-xl animate-bounce"
+          />
+          <div className="absolute -top-2 -right-2 text-3xl animate-spin-slow">✨</div>
+          <div className="absolute -bottom-1 -left-2 text-3xl animate-wiggle">🎉</div>
         </div>
 
-        <h1 className="text-3xl md:text-5xl font-black text-rose-600 tracking-tight drop-shadow-sm mb-2">
-          Hooray, {activeProfile.name}! 🎉
-        </h1>
-
-        {/* Stars Award Display */}
-        <div className="my-6 flex flex-col items-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            {[1, 2, 3].map((starIdx) => (
-              <div
-                key={starIdx}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-amber-100 border-3 border-amber-400 flex items-center justify-center text-4xl md:text-5xl shadow-md animate-bounce-slow"
-                style={{ animationDelay: `${starIdx * 0.2}s` }}
-              >
-                ⭐
-              </div>
-            ))}
+        {/* Title */}
+        <div className="z-10 mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-black text-xs md:text-sm mb-2 border border-amber-300">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>Superstar Lesson Complete!</span>
           </div>
-          <p className="text-lg md:text-xl font-black text-amber-800">
-            +3 Stars Added to Your Trophy Book!
-          </p>
-          <p className="text-sm font-bold text-gray-500">
-            Total Stars: <strong className="text-amber-600">{activeProfile.starsCount} ⭐</strong>
+          <h2 className="text-3xl md:text-4xl font-black text-amber-950 leading-none">
+            YOU DID IT!
+          </h2>
+          <p className="text-xs md:text-sm font-bold text-amber-800 mt-1">
+            {selectedLesson ? `Great job singing "${selectedLesson.title}"!` : 'Awesome learning session!'}
           </p>
         </div>
 
-        {/* Badge Unlocked Card if applicable */}
-        {recentBadgeUnlocked ? (
-          <div
-            onClick={openBadgeModal}
-            className="mb-8 p-4 rounded-3xl bg-gradient-to-r from-amber-400 via-rose-400 to-purple-500 text-white shadow-xl border-3 border-white cursor-pointer kid-btn-pop active:scale-95"
-          >
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-5xl animate-wiggle">{recentBadgeUnlocked.emoji}</span>
-              <div className="text-left">
-                <span className="text-xs uppercase font-black tracking-wider bg-white/30 px-2 py-0.5 rounded-full">
-                  New Badge Unlocked!
-                </span>
-                <h3 className="text-xl md:text-2xl font-black leading-tight">
-                  {recentBadgeUnlocked.title}
-                </h3>
-                <p className="text-xs font-semibold opacity-90">
-                  {recentBadgeUnlocked.description}
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-6 flex justify-center">
-            <button
-              onClick={openBadgeModal}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 font-bold text-sm hover:bg-amber-100 transition kid-btn-pop"
+        {/* 3 Golden Stars */}
+        <div className="flex items-center justify-center gap-3 md:gap-4 my-3 z-10">
+          {[1, 2, 3].map((starIdx) => (
+            <div
+              key={starIdx}
+              className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-amber-400 border-3 border-yellow-500 shadow-md flex items-center justify-center animate-pop-in"
+              style={{ animationDelay: `${starIdx * 150}ms` }}
             >
-              <Trophy className="w-4 h-4 text-amber-600" />
-              <span>View All My Badges ({activeProfile.badgesEarned.length})</span>
-            </button>
+              <Star className="w-9 h-9 md:w-10 md:h-10 fill-amber-950 text-amber-950 animate-wiggle" />
+            </div>
+          ))}
+        </div>
+
+        <div className="z-10 mb-5">
+          <span className="font-black text-amber-900 text-base md:text-lg">
+            +3 Stars Added to Your Sparky Bank! 🌟
+          </span>
+        </div>
+
+        {/* Unlocked Badge Card Notification */}
+        {recentBadgeUnlocked && (
+          <div className="z-10 mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-400 flex items-center gap-3 text-left animate-pop-in shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-3xl border border-amber-300 flex-shrink-0">
+              {recentBadgeUnlocked.emoji}
+            </div>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-300/60 px-2 py-0.5 rounded-full">
+                New Badge Unlocked!
+              </span>
+              <h4 className="font-black text-amber-950 text-sm md:text-base leading-tight mt-0.5">
+                {recentBadgeUnlocked.title}
+              </h4>
+              <p className="text-xs font-semibold text-amber-900 leading-snug">
+                {recentBadgeUnlocked.description}
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Repetition Friendly Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Sing Again / Replay */}
+        {/* Large Action Buttons (64px target) */}
+        <div className="flex flex-col gap-3 z-10">
           <button
             onClick={handleSingAgain}
-            className="py-4 px-6 rounded-2xl bg-amber-400 hover:bg-amber-500 border-4 border-amber-600 text-amber-950 font-black text-xl shadow-lg flex items-center justify-center gap-3 kid-btn-pop active:scale-95 transition"
+            className="w-full py-3.5 md:py-4 rounded-2xl bg-amber-400 hover:bg-amber-500 border-3 border-amber-600 text-amber-950 font-black text-lg md:text-xl shadow-lg flex items-center justify-center gap-2 transition active:scale-95 kid-btn-pop"
           >
             <RotateCcw className="w-6 h-6 stroke-[3]" />
-            <span>Sing Again! 🔁</span>
+            <span>SING AGAIN 🔁</span>
           </button>
 
-          {/* Back to Home Dashboard */}
           <button
-            onClick={handleGoHome}
-            className="py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 border-4 border-emerald-700 text-white font-black text-xl shadow-lg flex items-center justify-center gap-3 kid-btn-pop active:scale-95 transition"
+            onClick={handleHome}
+            className="w-full py-3.5 md:py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 border-3 border-emerald-700 text-white font-black text-lg md:text-xl shadow-lg flex items-center justify-center gap-2 transition active:scale-95 kid-btn-pop"
           >
-            <Home className="w-6 h-6 stroke-[3]" />
-            <span>Home Dashboard 🏠</span>
+            <Home className="w-6 h-6 stroke-[2.5]" />
+            <span>MORE SONGS 🏠</span>
           </button>
         </div>
       </div>

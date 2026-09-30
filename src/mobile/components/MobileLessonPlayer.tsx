@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useMobileApp } from '../context/MobileAppContext';
 import { nativeSpeech } from '../services/nativeSpeech';
 
@@ -130,13 +130,23 @@ export const MobileLessonPlayer: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Main Visualizer Card */}
+      {/* Main Visualizer Card with Dancing Sparky */}
       <View style={styles.visualizerCard}>
-        {/* Animated Mascot Emoji */}
-        <View style={styles.mascotCircle}>
-          <Text style={styles.mascotEmoji}>
-            {currentLyric?.highlightEmoji || selectedLesson.thumbnailEmoji}
-          </Text>
+        {/* Animated Characters Row */}
+        <View style={styles.charactersRow}>
+          {/* Dancing Sparky */}
+          <Image
+            source={require('../../assets/sparky.png')}
+            style={styles.dancingSparky}
+            resizeMode="contain"
+          />
+
+          {/* Lesson Emoji Circle */}
+          <View style={styles.mascotCircle}>
+            <Text style={styles.mascotEmoji}>
+              {currentLyric?.highlightEmoji || selectedLesson.thumbnailEmoji}
+            </Text>
+          </View>
         </View>
 
         {/* Karaoke Lyric Banner */}
@@ -147,7 +157,7 @@ export const MobileLessonPlayer: React.FC = () => {
             activeOpacity={0.8}
           >
             <Text style={styles.lyricText}>{currentLyric.text}</Text>
-            <Text style={styles.tapToRepeat}>🎙️ Reciting Aloud (Tap to Repeat)</Text>
+            <Text style={styles.tapToRepeat}>🎙️ Singing Aloud (Tap to Repeat)</Text>
           </TouchableOpacity>
         )}
 
@@ -161,7 +171,7 @@ export const MobileLessonPlayer: React.FC = () => {
         </View>
       </View>
 
-      {/* Toddler Controls Bar */}
+      {/* Toddler Controls Bar (64px+ targets) */}
       <View style={styles.controlsBar}>
         {/* Replay */}
         <TouchableOpacity
@@ -214,14 +224,14 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     backgroundColor: '#ffffff',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#cbd5e1',
   },
   backBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '900',
     color: '#334155',
   },
@@ -235,14 +245,14 @@ const styles = StyleSheet.create({
   },
   gameBtn: {
     backgroundColor: '#10b981',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#059669',
   },
   gameBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '900',
     color: '#ffffff',
   },
@@ -251,46 +261,56 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 4,
     borderColor: '#fde68a',
-    padding: 20,
+    padding: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 12,
+    marginVertical: 10,
     shadowColor: '#f59e0b',
     shadowOpacity: 0.15,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
+  charactersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 14,
+  },
+  dancingSparky: {
+    width: 75,
+    height: 75,
+  },
   mascotCircle: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#fef3c7',
-    borderWidth: 4,
+    borderWidth: 3.5,
     borderColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
   },
   mascotEmoji: {
-    fontSize: 70,
+    fontSize: 54,
   },
   lyricBanner: {
     backgroundColor: '#fffbeb',
     borderWidth: 3,
     borderColor: '#f59e0b',
     borderRadius: 24,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     alignItems: 'center',
     width: '100%',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   lyricText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#1e293b',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   tapToRepeat: {
     fontSize: 10,
@@ -326,7 +346,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   smallControlBtn: {
     width: 75,
@@ -348,8 +368,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   bigPlayBtn: {
-    width: 95,
-    height: 95,
+    width: 90,
+    height: 90,
     borderRadius: 28,
     borderWidth: 4,
     borderColor: '#ffffff',
@@ -361,7 +381,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
   },
   bigPlayIcon: {
-    fontSize: 34,
+    fontSize: 32,
   },
   bigPlayLabel: {
     fontSize: 11,

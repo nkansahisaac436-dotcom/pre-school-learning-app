@@ -55,7 +55,6 @@ export const LessonPlayer: React.FC = () => {
               lastRecitedLyricIdx.current = nextLyricIdx;
               const currentLyricObj = selectedLesson.lyrics[nextLyricIdx];
               if (currentLyricObj && settings.voiceNarrationEnabled) {
-                // Play melodic accompaniment chord
                 const chordNames: ('C' | 'G' | 'F' | 'Am')[] = ['C', 'G', 'F', 'Am'];
                 soundEffects.playRhythmChord(chordNames[nextLyricIdx % chordNames.length]);
                 voiceAssistant.reciteLyric(currentLyricObj.text);
@@ -143,27 +142,27 @@ export const LessonPlayer: React.FC = () => {
   const currentLyric = selectedLesson.lyrics ? selectedLesson.lyrics[activeLyricIndex] : null;
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-3 md:py-6 flex flex-col items-center select-none">
+    <div className="w-full max-w-4xl mx-auto px-4 py-3 md:py-5 flex flex-col items-center select-none">
       {/* Top minimal header */}
-      <div className="w-full flex items-center justify-between mb-4">
+      <div className="w-full flex items-center justify-between mb-3">
         <button
           onClick={() => {
             voiceAssistant.stop();
             setScreen('topic-menu');
           }}
-          className="px-4 py-2 bg-white/90 border-2 border-amber-300 rounded-2xl font-black text-sm text-gray-700 kid-btn-pop"
+          className="px-4 py-2 bg-white/95 border-2 border-amber-300 rounded-2xl font-black text-sm text-gray-700 kid-btn-pop shadow-sm"
         >
           ⬅️ Back to Songs
         </button>
 
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 border-2 border-amber-300 text-amber-900 font-black text-sm">
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 border-2 border-amber-300 text-amber-900 font-black text-xs md:text-sm shadow-sm">
           <Music className="w-4 h-4 text-amber-700 animate-bounce" />
-          <span>{selectedLesson.title}</span>
+          <span className="truncate max-w-[200px] md:max-w-none">{selectedLesson.title}</span>
         </div>
 
         <button
           onClick={handleNextToActivity}
-          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 border-2 border-emerald-600 text-white rounded-2xl font-black text-sm flex items-center gap-1 kid-btn-pop shadow"
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 border-2 border-emerald-600 text-white rounded-2xl font-black text-sm flex items-center gap-1 kid-btn-pop shadow-sm"
         >
           <span>Game ⭐</span>
           <ArrowRight className="w-4 h-4" />
@@ -172,7 +171,6 @@ export const LessonPlayer: React.FC = () => {
 
       {/* Main Video & Visualizer Screen */}
       <div className="w-full bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-300 relative">
-        {/* If custom media URL is provided and is a video embed */}
         {selectedLesson.mediaUrl ? (
           <div className="w-full aspect-video bg-black flex items-center justify-center">
             {selectedLesson.mediaUrl.includes('youtube.com') || selectedLesson.mediaUrl.includes('youtu.be') ? (
@@ -193,26 +191,39 @@ export const LessonPlayer: React.FC = () => {
             )}
           </div>
         ) : (
-          /* Interactive Animated Music Visualizer Stage with Real-Time Vocal Recitation */
+          /* Interactive Animated Visualizer with Dancing Sparky Mascot & Real-Time Vocal Recitation */
           <div
-            className="w-full aspect-video sm:min-h-[420px] relative flex flex-col items-center justify-between p-6 overflow-hidden"
+            className="w-full aspect-video sm:min-h-[380px] relative flex flex-col items-center justify-between p-5 md:p-6 overflow-hidden"
             style={{
               background: `radial-gradient(circle at 50% 30%, ${selectedLesson.accentColor}30 0%, #fffbeb 60%, ${selectedLesson.accentColor}15 100%)`,
             }}
           >
-            {/* Floating Background Stars & Bubbles */}
-            <div className="absolute top-6 left-8 text-4xl animate-bounce-slow opacity-60">✨</div>
-            <div className="absolute top-12 right-12 text-4xl animate-float-star opacity-60">🌟</div>
-            <div className="absolute bottom-16 left-12 text-3xl animate-wiggle opacity-60">🎈</div>
-            <div className="absolute bottom-14 right-16 text-4xl animate-bounce-slow opacity-60">🎵</div>
+            {/* Floating Background Stars & Notes */}
+            <div className="absolute top-6 left-8 text-3xl animate-bounce-slow opacity-60">✨</div>
+            <div className="absolute top-10 right-10 text-3xl animate-float-star opacity-60">🌟</div>
+            <div className="absolute bottom-14 left-10 text-3xl animate-wiggle opacity-60">🎈</div>
+            <div className="absolute bottom-12 right-12 text-3xl animate-bounce-slow opacity-60">🎵</div>
 
-            {/* Central Animated Scene Theme */}
+            {/* Central Mascot & Character Scene */}
             <div className="my-auto flex flex-col items-center justify-center text-center z-10 w-full">
-              {/* Theme-specific big animated character */}
-              <div className="relative mb-4">
+              {/* Dancing Sparky + Lesson Mascot */}
+              <div className="relative mb-3 flex items-center justify-center gap-3">
+                {/* Dancing Sparky */}
+                <div className={`relative ${isPlaying ? 'animate-bounce-slow' : ''}`}>
+                  <img
+                    src="/sparky.png"
+                    alt="Sparky Dancing"
+                    className="w-20 h-20 md:w-24 md:h-24 object-contain filter drop-shadow-md"
+                  />
+                  {isPlaying && (
+                    <div className="absolute -top-1 -right-1 text-xl animate-spin-slow">🎶</div>
+                  )}
+                </div>
+
+                {/* Lesson Highlight Emoji */}
                 <div
-                  className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center text-8xl md:text-9xl shadow-2xl border-4 border-white transition-transform duration-300 ${
-                    isPlaying ? 'animate-bounce-slow scale-105' : ''
+                  className={`w-28 h-28 md:w-36 md:h-36 rounded-3xl flex items-center justify-center text-6xl md:text-7xl shadow-xl border-4 border-white transition-transform duration-300 ${
+                    isPlaying ? 'scale-105 animate-wiggle' : ''
                   }`}
                   style={{ backgroundColor: `${selectedLesson.accentColor}35` }}
                 >
@@ -220,47 +231,35 @@ export const LessonPlayer: React.FC = () => {
                     {currentLyric?.highlightEmoji || selectedLesson.thumbnailEmoji}
                   </span>
                 </div>
-
-                {/* Pulsing musical ripples */}
-                {isPlaying && (
-                  <>
-                    <div
-                      className="absolute inset-0 rounded-full border-4 border-amber-400 animate-ping opacity-25 pointer-events-none"
-                      style={{ animationDuration: '1.2s' }}
-                    />
-                    <div className="absolute -top-3 -right-3 text-3xl animate-bounce">🎶</div>
-                    <div className="absolute -bottom-2 -left-2 text-3xl animate-wiggle">⭐</div>
-                  </>
-                )}
               </div>
 
-              {/* Karaoke Bouncing Lyric Banner with Fast Read-Aloud Voice Feedback */}
+              {/* Karaoke Bouncing Lyric Banner */}
               {currentLyric && (
                 <div 
                   onClick={handleManualRecite}
-                  className="px-6 py-4 rounded-3xl bg-white/95 backdrop-blur border-4 border-amber-400 shadow-2xl max-w-2xl animate-pop-in cursor-pointer hover:scale-105 transition"
+                  className="px-5 py-3 rounded-2xl bg-white/95 backdrop-blur border-3 border-amber-400 shadow-xl max-w-xl animate-pop-in cursor-pointer hover:scale-105 transition"
                   title="Tap to hear recitation again"
                 >
-                  <div className="flex items-center justify-center gap-3">
-                    <Volume2 className="w-7 h-7 text-rose-500 animate-bounce flex-shrink-0" />
-                    <p className="text-2xl md:text-4xl font-black text-gray-900 leading-snug tracking-wide drop-shadow-sm">
+                  <div className="flex items-center justify-center gap-2.5">
+                    <Volume2 className="w-6 h-6 text-rose-500 animate-bounce flex-shrink-0" />
+                    <p className="text-xl md:text-3xl font-black text-gray-900 leading-snug tracking-wide drop-shadow-sm">
                       {currentLyric.text}
                     </p>
                   </div>
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span className="text-xs font-black text-amber-800 uppercase tracking-wider">
-                      Reciting Aloud 🎵 (Tap banner to repeat)
+                  <div className="flex items-center justify-center gap-1.5 mt-1.5">
+                    <Sparkles className="w-3 h-3 text-amber-500" />
+                    <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">
+                      Singing Aloud 🎵 (Tap to repeat)
                     </span>
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <Sparkles className="w-3 h-3 text-amber-500" />
                   </div>
                 </div>
               )}
             </div>
 
             {/* Progress Slider Display for Toddlers */}
-            <div className="w-full z-10 mt-auto pt-4">
-              <div className="w-full bg-white/80 rounded-full h-5 p-1 border-2 border-amber-300 shadow-inner relative overflow-hidden">
+            <div className="w-full z-10 mt-auto pt-3">
+              <div className="w-full bg-white/80 rounded-full h-4 p-0.5 border-2 border-amber-300 shadow-inner relative overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-amber-400 via-rose-400 to-emerald-400 transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
@@ -274,24 +273,24 @@ export const LessonPlayer: React.FC = () => {
           </div>
         )}
 
-        {/* Oversized Toddler Controls Bar */}
-        <div className="bg-amber-50 border-t-4 border-amber-300 p-4 md:p-6 flex items-center justify-center gap-4 md:gap-8">
-          {/* Replay Button */}
+        {/* Oversized Toddler Controls Bar (At least 64px tap targets) */}
+        <div className="bg-amber-50 border-t-4 border-amber-300 p-4 md:p-5 flex items-center justify-center gap-4 md:gap-8">
+          {/* Replay Button (>= 64px) */}
           <button
             onClick={handleReplay}
             aria-label="Replay song from start"
-            className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-amber-300 hover:bg-amber-400 border-4 border-amber-500 text-amber-950 flex flex-col items-center justify-center shadow-lg kid-btn-pop active:scale-95 transition"
+            className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-amber-300 hover:bg-amber-400 border-3 border-amber-500 text-amber-950 flex flex-col items-center justify-center shadow-lg kid-btn-pop active:scale-95 transition"
             title="Replay from beginning"
           >
-            <RotateCcw className="w-8 h-8 stroke-[3]" />
-            <span className="text-[10px] font-black uppercase">Replay</span>
+            <RotateCcw className="w-7 h-7 stroke-[3]" />
+            <span className="text-[10px] font-black uppercase mt-0.5">Replay</span>
           </button>
 
-          {/* Big Play/Pause Button */}
+          {/* Big Play/Pause Button (>= 64px) */}
           <button
             onClick={handlePlayPause}
             aria-label={isPlaying ? 'Pause song' : 'Play song'}
-            className={`w-24 h-24 md:w-28 md:h-28 rounded-3xl border-4 text-white flex flex-col items-center justify-center shadow-2xl kid-btn-pop active:scale-95 transition ${
+            className={`w-20 h-20 md:w-24 md:h-24 rounded-3xl border-4 text-white flex flex-col items-center justify-center shadow-2xl kid-btn-pop active:scale-95 transition ${
               isPlaying
                 ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-orange-600'
                 : 'bg-gradient-to-br from-emerald-400 to-green-600 border-green-700'
@@ -299,24 +298,24 @@ export const LessonPlayer: React.FC = () => {
             title={isPlaying ? 'Pause' : 'Sing!'}
           >
             {isPlaying ? (
-              <Pause className="w-12 h-12 md:w-14 md:h-14 fill-white" />
+              <Pause className="w-10 h-10 md:w-12 md:h-12 fill-white" />
             ) : (
-              <Play className="w-12 h-12 md:w-14 md:h-14 fill-white translate-x-1" />
+              <Play className="w-10 h-10 md:w-12 md:h-12 fill-white translate-x-0.5" />
             )}
-            <span className="text-xs font-black uppercase tracking-wider mt-0.5">
+            <span className="text-[11px] font-black uppercase tracking-wider mt-0.5">
               {isPlaying ? 'Pause' : 'Sing!'}
             </span>
           </button>
 
-          {/* Skip straight to Mini-Activity Button */}
+          {/* Skip straight to Mini-Activity Button (>= 64px) */}
           <button
             onClick={handleNextToActivity}
             aria-label="Go to fun game"
-            className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-emerald-400 hover:bg-emerald-500 border-4 border-emerald-600 text-white flex flex-col items-center justify-center shadow-lg kid-btn-pop active:scale-95 transition"
+            className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-emerald-400 hover:bg-emerald-500 border-3 border-emerald-600 text-white flex flex-col items-center justify-center shadow-lg kid-btn-pop active:scale-95 transition"
             title="Go to Game"
           >
-            <ArrowRight className="w-8 h-8 stroke-[3]" />
-            <span className="text-[10px] font-black uppercase">Game ⭐</span>
+            <ArrowRight className="w-7 h-7 stroke-[3]" />
+            <span className="text-[10px] font-black uppercase mt-0.5">Game ⭐</span>
           </button>
         </div>
       </div>

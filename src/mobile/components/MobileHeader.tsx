@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useMobileApp } from '../context/MobileAppContext';
 import { nativeSpeech } from '../services/nativeSpeech';
+import { APP_NAME } from '../../constants/app';
 
 export const MobileHeader: React.FC = () => {
   const { activeProfile, navigateHome, setActiveModal } = useMobileApp();
@@ -14,8 +15,8 @@ export const MobileHeader: React.FC = () => {
         style={styles.logoBtn}
         activeOpacity={0.8}
       >
-        <Text style={styles.logoEmoji}>🎈</Text>
-        <Text style={styles.logoText}>ikj_system</Text>
+        <Text style={styles.logoEmoji}>⭐</Text>
+        <Text style={styles.logoText}>{APP_NAME}</Text>
       </TouchableOpacity>
 
       {/* Badges & Stars */}
@@ -49,7 +50,7 @@ export const MobileHeader: React.FC = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
+    height: 64,
     backgroundColor: '#ffffff',
     borderBottomWidth: 3,
     borderBottomColor: '#fde68a',
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fef3c7',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#f59e0b',
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fef3c7',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#f59e0b',
@@ -102,9 +103,9 @@ const styles = StyleSheet.create({
     color: '#78350f',
   },
   parentBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#f1f5f9',
     borderWidth: 2,
     borderColor: '#cbd5e1',
@@ -112,6 +113,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   parentEmoji: {
-    fontSize: 16,
+    fontSize: 18,
   },
 });

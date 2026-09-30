@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
 import { useMobileApp } from '../context/MobileAppContext';
 import { nativeSpeech } from '../services/nativeSpeech';
 import type { Topic } from '../../types';
@@ -13,15 +13,39 @@ export const MobileHomeDashboard: React.FC = () => {
     setActiveModal 
   } = useMobileApp();
 
+  const [isSparkyWinking, setIsSparkyWinking] = useState(false);
+
+  const handleSparkyTap = () => {
+    setIsSparkyWinking(true);
+    nativeSpeech.speak(`Hi ${activeProfile.name}! Sparky loves you! Let us learn and sing together!`);
+    setTimeout(() => {
+      setIsSparkyWinking(false);
+    }, 1800);
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Welcome Banner */}
+      {/* Sparky Mascot & Welcome Banner */}
       <View style={styles.welcomeBanner}>
-        <Text style={styles.welcomeGreeting}>👋 Hello, {activeProfile.name}!</Text>
+        {/* Interactive Sparky Mascot */}
+        <TouchableOpacity
+          onPress={handleSparkyTap}
+          style={styles.sparkyBtn}
+          activeOpacity={0.8}
+        >
+          <Image
+            source={require('../../assets/sparky.png')}
+            style={[styles.sparkyImg, isSparkyWinking && styles.sparkyImgWink]}
+            resizeMode="contain"
+          />
+          <Text style={styles.tapSparkyHint}>Tap Sparky! ⭐</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.welcomeGreeting}>Hello, {activeProfile.name}! 👋</Text>
         <Text style={styles.welcomeTitle}>What should we learn today? 🎶</Text>
       </View>
 
-      {/* Interactive Soundboard Launchers Horizontal Scroller / Grid */}
+      {/* Interactive Soundboard Launchers Horizontal Scroller */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>✨ Interactive Touchboards</Text>
       </View>
@@ -157,6 +181,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  sparkyBtn: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sparkyImg: {
+    width: 90,
+    height: 90,
+  },
+  sparkyImgWink: {
+    transform: [{ scale: 1.1 }, { rotate: '5deg' }],
+  },
+  tapSparkyHint: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#92400e',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#f59e0b',
+    marginTop: 4,
+  },
   welcomeGreeting: {
     fontSize: 14,
     fontWeight: '900',
@@ -167,7 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: '#f59e0b',
-    marginBottom: 4,
+    marginVertical: 4,
   },
   welcomeTitle: {
     fontSize: 22,
@@ -187,8 +234,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   quickTile: {
-    width: 110,
-    height: 110,
+    width: 115,
+    height: 115,
     borderRadius: 24,
     padding: 10,
     marginRight: 10,
@@ -202,7 +249,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   quickEmoji: {
-    fontSize: 34,
+    fontSize: 36,
     marginBottom: 4,
   },
   quickTitle: {
