@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "ikj_system - Pre-School Learning",
+    "slug": "pre-school-learning-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/favicon.svg",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#fef3c7",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nkansahisaac.preschoollearning"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#fef3c7"
+      },
+      "package": "com.nkansahisaac.preschoollearning"
+    },
+    "web": {
+      "favicon": "./public/favicon.svg"
+    }
+  }
+}
