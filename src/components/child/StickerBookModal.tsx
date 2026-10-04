@@ -3,7 +3,7 @@ import type { StickerItem } from '../../types';
 import { INITIAL_STICKERS } from '../../data/initialContent';
 import { musicEngine } from '../../services/musicEngine';
 import { voiceAssistant } from '../../services/voiceAssistant';
-import { X, Sparkles, Award, Star } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;

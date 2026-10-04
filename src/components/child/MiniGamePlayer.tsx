@@ -3,7 +3,7 @@ import type { MiniGameConfig, MiniGameOption } from '../../types';
 import { voiceAssistant } from '../../services/voiceAssistant';
 import { soundEffects } from '../../services/soundEffects';
 import { musicEngine } from '../../services/musicEngine';
-import { Sparkles, Trophy, CheckCircle, ArrowRight, RotateCcw } from 'lucide-react';
+import { Trophy, CheckCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -199,7 +199,7 @@ export const MiniGamePlayer: React.FC<Props> = ({ config, onComplete, onSkip }) 
       {/* COUNT THE STARS GAME */}
       {config.type === 'count_stars' && (
         <div className="flex flex-wrap items-center justify-center gap-4 my-8">
-          {config.options.map((opt, index) => {
+          {config.options.map((opt) => {
             const isCounted = countedIds.includes(opt.id);
             return (
               <button

@@ -801,3 +801,83 @@ export const INITIAL_CHILD_PROFILE: ChildProfile = {
   lastStreakDate: new Date().toISOString().split('T')[0],
   lastActiveDate: new Date().toISOString(),
 };
+
+export const DEFAULT_CHILD_PROFILE = INITIAL_CHILD_PROFILE;
+
+export const ALPHABET_A_TO_Z_ITEMS = [
+  { letter: 'A', word: 'Apple', emoji: '🍎', phonics: 'a-a-apple' },
+  { letter: 'B', word: 'Ball', emoji: '⚽', phonics: 'b-b-ball' },
+  { letter: 'C', word: 'Cat', emoji: '🐱', phonics: 'c-c-cat' },
+  { letter: 'D', word: 'Dog', emoji: '🐶', phonics: 'd-d-dog' },
+  { letter: 'E', word: 'Elephant', emoji: '🐘', phonics: 'e-e-elephant' },
+  { letter: 'F', word: 'Fish', emoji: '🐟', phonics: 'f-f-fish' },
+  { letter: 'G', word: 'Grape', emoji: '🍇', phonics: 'g-g-grape' },
+  { letter: 'H', word: 'Hat', emoji: '🎩', phonics: 'h-h-hat' },
+  { letter: 'I', word: 'Igloo', emoji: '🧊', phonics: 'i-i-igloo' },
+  { letter: 'J', word: 'Juice', emoji: '🧃', phonics: 'j-j-juice' },
+  { letter: 'K', word: 'Kite', emoji: '🪁', phonics: 'k-k-kite' },
+  { letter: 'L', word: 'Lion', emoji: '🦁', phonics: 'l-l-lion' },
+  { letter: 'M', word: 'Monkey', emoji: '🐵', phonics: 'm-m-monkey' },
+  { letter: 'N', word: 'Nest', emoji: '🪺', phonics: 'n-n-nest' },
+  { letter: 'O', word: 'Orange', emoji: '🍊', phonics: 'o-o-orange' },
+  { letter: 'P', word: 'Panda', emoji: '🐼', phonics: 'p-p-panda' },
+  { letter: 'Q', word: 'Queen', emoji: '👑', phonics: 'q-q-queen' },
+  { letter: 'R', word: 'Rainbow', emoji: '🌈', phonics: 'r-r-rainbow' },
+  { letter: 'S', word: 'Star', emoji: '⭐', phonics: 's-s-star' },
+  { letter: 'T', word: 'Tiger', emoji: '🐯', phonics: 't-t-tiger' },
+  { letter: 'U', word: 'Umbrella', emoji: '☂️', phonics: 'u-u-umbrella' },
+  { letter: 'V', word: 'Violin', emoji: '🎻', phonics: 'v-v-violin' },
+  { letter: 'W', word: 'Watermelon', emoji: '🍉', phonics: 'w-w-watermelon' },
+  { letter: 'X', word: 'Xylophone', emoji: '🎵', phonics: 'x-x-xylophone' },
+  { letter: 'Y', word: 'Yo-Yo', emoji: '🪀', phonics: 'y-y-yoyo' },
+  { letter: 'Z', word: 'Zebra', emoji: '🦓', phonics: 'z-z-zebra' },
+];
+
+export const COLOR_ITEMS = [
+  { name: 'Red', hex: '#EF4444', emoji: '🍎', sample: 'Red Apple', bgClass: 'bg-red-500', textClass: 'text-red-900' },
+  { name: 'Orange', hex: '#F97316', emoji: '🍊', sample: 'Sweet Orange', bgClass: 'bg-orange-500', textClass: 'text-orange-900' },
+  { name: 'Yellow', hex: '#FACC15', emoji: '☀️', sample: 'Bright Sun', bgClass: 'bg-yellow-400', textClass: 'text-yellow-900' },
+  { name: 'Green', hex: '#10B981', emoji: '🍃', sample: 'Green Leaf', bgClass: 'bg-emerald-500', textClass: 'text-emerald-900' },
+  { name: 'Blue', hex: '#3B82F6', emoji: '🌊', sample: 'Blue Ocean', bgClass: 'bg-blue-500', textClass: 'text-blue-900' },
+  { name: 'Purple', hex: '#A855F7', emoji: '🍇', sample: 'Juicy Grape', bgClass: 'bg-purple-500', textClass: 'text-purple-900' },
+  { name: 'Pink', hex: '#EC4899', emoji: '🌸', sample: 'Pink Flower', bgClass: 'bg-pink-500', textClass: 'text-pink-900' },
+  { name: 'Brown', hex: '#854D0E', emoji: '🐻', sample: 'Teddy Bear', bgClass: 'bg-amber-800', textClass: 'text-amber-950' },
+  { name: 'Black', hex: '#1E293B', emoji: '🐈‍⬛', sample: 'Black Cat', bgClass: 'bg-slate-900', textClass: 'text-white' },
+  { name: 'White', hex: '#F8FAFC', emoji: '☁️', sample: 'Fluffy Cloud', bgClass: 'bg-slate-100', textClass: 'text-slate-900' },
+  { name: 'Gold', hex: '#F59E0B', emoji: '⭐', sample: 'Sparky Star', bgClass: 'bg-amber-400', textClass: 'text-amber-950' },
+  { name: 'Rainbow', hex: '#6366F1', emoji: '🌈', sample: 'Magic Rainbow', bgClass: 'bg-indigo-500', textClass: 'text-indigo-900' },
+];
+
+export const SHAPE_ITEMS = [
+  { name: 'Circle', emoji: '⭕', desc: 'Round like a ball', sample: 'Rolling Ball' },
+  { name: 'Square', emoji: '⏹️', desc: 'Four equal sides', sample: 'Toy Block' },
+  { name: 'Triangle', emoji: '📐', desc: 'Three pointy corners', sample: 'Pizza Slice' },
+  { name: 'Rectangle', emoji: '🚪', desc: 'Like a door you walk inside', sample: 'Front Door' },
+  { name: 'Star', emoji: '⭐', desc: 'Twinkling bright in the night', sample: 'Sparky Star' },
+  { name: 'Heart', emoji: '❤️', desc: 'Full of love and kindness', sample: 'Warm Hug' },
+  { name: 'Oval', emoji: '🥚', desc: 'Smooth rounded egg shape', sample: 'Easter Egg' },
+  { name: 'Diamond', emoji: '💎', desc: 'Sparkling shining diamond', sample: 'Kite' },
+];
+
+export const ANIMAL_ITEMS = [
+  { name: 'Cow', sound: 'Moo Moo', emoji: '🐮', habitat: 'Farm' },
+  { name: 'Duck', sound: 'Quack Quack', emoji: '🦆', habitat: 'Pond' },
+  { name: 'Sheep', sound: 'Baa Baa', emoji: '🐑', habitat: 'Farm' },
+  { name: 'Pig', sound: 'Oink Oink', emoji: '🐷', habitat: 'Farm' },
+  { name: 'Lion', sound: 'Roar!', emoji: '🦁', habitat: 'Safari' },
+  { name: 'Dog', sound: 'Woof Woof', emoji: '🐶', habitat: 'Home' },
+  { name: 'Cat', sound: 'Meow Meow', emoji: '🐱', habitat: 'Home' },
+  { name: 'Frog', sound: 'Ribbit Ribbit', emoji: '🐸', habitat: 'Pond' },
+  { name: 'Monkey', sound: 'Ooh Ooh Aah Aah', emoji: '🐵', habitat: 'Jungle' },
+  { name: 'Elephant', sound: 'Pawoo!', emoji: '🐘', habitat: 'Safari' },
+];
+
+export const HABIT_ITEMS = [
+  { id: 'h1', name: 'Wash Hands', title: 'Wash Hands', desc: 'With warm water and soap bubbles!', phrase: 'Wash hands with soap and water!', emoji: '🧼' },
+  { id: 'h2', name: 'Brush Teeth', title: 'Brush Teeth', desc: 'Brush twice a day for a bright smile!', phrase: 'Brush your teeth morning and night!', emoji: '🪥' },
+  { id: 'h3', name: 'Say Please & Thank You', title: 'Say Please & Thank You', desc: 'Magic polite words every day!', phrase: 'Always say please and thank you!', emoji: '🙏' },
+  { id: 'h4', name: 'Clean Up Toys', title: 'Clean Up Toys', desc: 'Put toys in their cozy boxes!', phrase: 'Clean up your toys after playtime!', emoji: '🧸' },
+  { id: 'h5', name: 'Eat Healthy Fruit', title: 'Eat Healthy Fruit', desc: 'Delicious apples, bananas & berries!', phrase: 'Eat yummy, crunchy fresh fruits!', emoji: '🍎' },
+  { id: 'h6', name: 'Sleep on Time', title: 'Sleep on Time', desc: 'Rest well for big tomorrow energy!', phrase: 'Sleep early and have sweet dreams!', emoji: '🌙' },
+];
+

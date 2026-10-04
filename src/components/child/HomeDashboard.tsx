@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { Topic } from '../../types';
-import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
 import { musicEngine } from '../../services/musicEngine';
 import { Sparkles, Star, Heart, Flame, Moon, Award } from 'lucide-react';

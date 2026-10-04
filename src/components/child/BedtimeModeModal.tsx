@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import type { Lesson } from '../../types';
 import { INITIAL_LESSONS } from '../../data/initialContent';
 import { musicEngine } from '../../services/musicEngine';
 import { voiceAssistant } from '../../services/voiceAssistant';
-import { Moon, Star, Sparkles, X, Play, Pause, Volume2 } from 'lucide-react';
+import { Moon, Star, Sparkles, X, Play, Pause } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;

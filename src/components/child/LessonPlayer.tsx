@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
 import { musicEngine } from '../../services/musicEngine';
-import { Play, Pause, RotateCcw, ArrowRight, Music, Volume2, Sparkles, Heart, Gauge } from 'lucide-react';
+import { Play, Pause, RotateCcw, ArrowRight, Sparkles, Heart, Gauge } from 'lucide-react';
 import { MiniGamePlayer } from './MiniGamePlayer';
 
 export const LessonPlayer: React.FC = () => {
@@ -173,7 +173,7 @@ export const LessonPlayer: React.FC = () => {
       const updatedFavs = newFav
         ? [...currentFavs, selectedLesson.id]
         : currentFavs.filter((id) => id !== selectedLesson.id);
-      updateProfile({ favoriteLessonIds: updatedFavs });
+      updateProfile({ ...activeProfile, favoriteLessonIds: updatedFavs });
       voiceAssistant.speak(newFav ? 'Added to your favorites!' : 'Removed from favorites');
     }
   };

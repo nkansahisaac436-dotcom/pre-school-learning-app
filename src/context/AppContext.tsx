@@ -112,6 +112,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   speechPitch: 1.25,
   maxDailyMinutes: 30,
   volume: 0.8,
+  bedtimeModeEnabled: false,
+  autoPlayNext: true,
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -272,8 +274,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       avatar,
       completedLessons: [],
       badgesEarned: [],
+      stickersEarned: ['stk_sparky_gold'],
+      favoriteLessonIds: [],
       totalTimeSpentSeconds: 0,
       starsCount: 0,
+      streakDays: 1,
+      lastStreakDate: new Date().toISOString().split('T')[0],
       lastActiveDate: new Date().toISOString().split('T')[0],
     };
     setProfiles((prev) => [...prev, newProf]);
