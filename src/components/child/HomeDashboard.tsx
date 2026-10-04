@@ -3,7 +3,10 @@ import { useApp } from '../../context/AppContext';
 import type { Topic } from '../../types';
 import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
-import { Sparkles, Star, Heart } from 'lucide-react';
+import { musicEngine } from '../../services/musicEngine';
+import { Sparkles, Star, Heart, Flame, Moon, Award } from 'lucide-react';
+import { StickerBookModal } from './StickerBookModal';
+import { BedtimeModeModal } from './BedtimeModeModal';
 
 export const HomeDashboard: React.FC = () => {
   const { 
@@ -20,26 +23,60 @@ export const HomeDashboard: React.FC = () => {
   } = useApp();
 
   const [isSparkyWinking, setIsSparkyWinking] = useState(false);
+  const [isStickerBookOpen, setIsStickerBookOpen] = useState(false);
+  const [isBedtimeOpen, setIsBedtimeOpen] = useState(false);
 
   const handleSparkyTap = () => {
     setIsSparkyWinking(true);
-    soundEffects.playSparkleStar();
-    voiceAssistant.speak(`Hi ${activeProfile.name}! Sparky loves you! Let us sing a fun song!`);
+    musicEngine.playStarChime();
+    voiceAssistant.speak(`Hi ${activeProfile.name}! Sparky loves you! Let us sing a cheerful song together!`);
     setTimeout(() => {
       setIsSparkyWinking(false);
     }, 1800);
   };
 
   const handleTopicTap = (topic: Topic) => {
+    musicEngine.playPop();
     selectTopicAndNavigate(topic);
-  };
-
-  const handleTopicHover = () => {
-    soundEffects.playPop();
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-4 md:py-6 flex flex-col items-center select-none">
+      {/* Top Banner with Streak, Stickers & Bedtime mode */}
+      <div className="w-full flex flex-wrap items-center justify-between gap-2 mb-4">
+        {/* Daily Streak Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/90 border-2 border-amber-300 text-amber-950 font-black text-xs md:text-sm shadow-sm">
+          <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-pulse" />
+          <span>{activeProfile.streakDays || 3} Day Streak! 🔥</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Sticker Book Button */}
+          <button
+            onClick={() => {
+              musicEngine.playPop();
+              setIsStickerBookOpen(true);
+            }}
+            className="px-3.5 py-1.5 rounded-full bg-yellow-300 hover:bg-yellow-400 text-yellow-950 font-black text-xs md:text-sm border-2 border-yellow-400 shadow-sm flex items-center gap-1.5 active:scale-95 transition"
+          >
+            <Award className="w-4 h-4 text-yellow-800" />
+            <span>Sticker Album ⭐</span>
+          </button>
+
+          {/* Bedtime Mode Button */}
+          <button
+            onClick={() => {
+              musicEngine.playPop();
+              setIsBedtimeOpen(true);
+            }}
+            className="px-3.5 py-1.5 rounded-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 font-black text-xs md:text-sm border-2 border-indigo-700 shadow-sm flex items-center gap-1.5 active:scale-95 transition"
+          >
+            <Moon className="w-4 h-4 text-yellow-300" />
+            <span>Bedtime Lullabies 🌙</span>
+          </button>
+        </div>
+      </div>
+
       {/* Friendly Mascot Greeting Banner */}
       <div className="w-full flex flex-col items-center text-center mb-6">
         {/* Sparky Interactive Mascot */}
@@ -55,7 +92,11 @@ export const HomeDashboard: React.FC = () => {
               className={`w-24 h-24 md:w-28 md:h-28 object-contain filter drop-shadow-md transition-transform duration-300 ${
                 isSparkyWinking ? 'scale-110 rotate-6' : 'group-hover:scale-105 animate-bounce-slow'
               }`}
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
             />
+            <span className="text-6xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10">⭐</span>
             {isSparkyWinking && (
               <div className="absolute -top-1 -right-1 text-2xl animate-spin">✨</div>
             )}
@@ -92,8 +133,11 @@ export const HomeDashboard: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {/* A to Z Button */}
           <button
-            onClick={openAlphabetModal}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
+            onClick={() => {
+              musicEngine.playPop();
+              openAlphabetModal();
+            }}
+            className="p-3.5 rounded-3xl bg-gradient-to-br from-pink-400 to-rose-500 text-white border-4 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[92px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🔤</span>
             <span className="font-black text-xs mt-1 leading-tight">A to Z Board</span>
@@ -102,8 +146,11 @@ export const HomeDashboard: React.FC = () => {
 
           {/* 1 to 100+ Numbers Button */}
           <button
-            onClick={openNumberModal}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-amber-950 border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
+            onClick={() => {
+              musicEngine.playPop();
+              openNumberModal();
+            }}
+            className="p-3.5 rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-500 text-amber-950 border-4 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[92px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">💯</span>
             <span className="font-black text-xs mt-1 leading-tight text-amber-950">1-100+ Grid</span>
@@ -112,8 +159,11 @@ export const HomeDashboard: React.FC = () => {
 
           {/* Colors Button */}
           <button
-            onClick={openColorsModal}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
+            onClick={() => {
+              musicEngine.playPop();
+              openColorsModal();
+            }}
+            className="p-3.5 rounded-3xl bg-gradient-to-br from-sky-400 to-blue-500 text-white border-4 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[92px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🎨</span>
             <span className="font-black text-xs mt-1 leading-tight">Rainbow Colors</span>
@@ -122,8 +172,11 @@ export const HomeDashboard: React.FC = () => {
 
           {/* Shapes Button */}
           <button
-            onClick={openShapesModal}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-400 to-grape-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
+            onClick={() => {
+              musicEngine.playPop();
+              openShapesModal();
+            }}
+            className="p-3.5 rounded-3xl bg-gradient-to-br from-purple-400 to-indigo-500 text-white border-4 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[92px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🔷</span>
             <span className="font-black text-xs mt-1 leading-tight">Shape Board</span>
@@ -132,97 +185,88 @@ export const HomeDashboard: React.FC = () => {
 
           {/* Animals Button */}
           <button
-            onClick={openAnimalsModal}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
+            onClick={() => {
+              musicEngine.playPop();
+              openAnimalsModal();
+            }}
+            className="p-3.5 rounded-3xl bg-gradient-to-br from-emerald-400 to-green-500 text-white border-4 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[92px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🦁</span>
             <span className="font-black text-xs mt-1 leading-tight">Safari Sounds</span>
             <span className="text-[10px] text-emerald-100 font-bold">20 Animals</span>
           </button>
 
-          {/* Habits Button */}
+          {/* Good Habits Button */}
           <button
-            onClick={openHabitsModal}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-orange-400 to-coral-500 text-white border-3 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[90px]"
+            onClick={() => {
+              musicEngine.playPop();
+              openHabitsModal();
+            }}
+            className="p-3.5 rounded-3xl bg-gradient-to-br from-teal-400 to-cyan-500 text-white border-4 border-white shadow-md flex flex-col items-center justify-center text-center transition kid-btn-pop active:scale-95 group min-h-[92px]"
           >
             <span className="text-3xl group-hover:scale-110 transition">🧼</span>
-            <span className="font-black text-xs mt-1 leading-tight">Healthy Hero</span>
-            <span className="text-[10px] text-orange-100 font-bold">10 Habits</span>
+            <span className="font-black text-xs mt-1 leading-tight">Good Habits</span>
+            <span className="text-[10px] text-teal-100 font-bold">Checklist</span>
           </button>
         </div>
       </div>
 
-      {/* Grid of Big Colorful Topic Tiles */}
-      <div className="w-full grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-        {topics.map((topic) => {
-          const topicLessons = lessons.filter((l) => l.topicId === topic.id);
-          const completedCount = topicLessons.filter((l) =>
-            activeProfile.completedLessons.includes(l.id)
-          ).length;
-          const hasBadge = activeProfile.badgesEarned.includes(topic.badgeId);
+      {/* Main Learning Topics List */}
+      <div className="w-full">
+        <div className="flex items-center gap-2 mb-3 px-1">
+          <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+          <span className="text-xs font-black uppercase tracking-wider text-amber-900">
+            Singing & Musical Learning Topics
+          </span>
+        </div>
 
-          return (
-            <button
-              key={topic.id}
-              onClick={() => handleTopicTap(topic)}
-              onMouseEnter={handleTopicHover}
-              aria-label={`Explore ${topic.name}`}
-              className={`group relative rounded-3xl p-5 md:p-6 border-4 ${topic.colorTheme.border} ${topic.colorTheme.bg} transition duration-200 kid-card flex flex-col items-center justify-between text-center overflow-hidden min-h-[190px] md:min-h-[210px] active:scale-95`}
-            >
-              {/* Subtle gradient background hover glow */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${topic.colorTheme.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-300 pointer-events-none`}
-              />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {topics.map((topic) => {
+            const topicLessons = lessons.filter((l) => l.topicId === topic.id);
+            const completedCount = topicLessons.filter((l) =>
+              activeProfile.completedLessons.includes(l.id)
+            ).length;
 
-              {/* Status Header */}
-              <div className="w-full flex items-center justify-between z-10">
-                {hasBadge ? (
-                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-amber-950 font-black text-xs shadow-sm border border-yellow-200">
-                    <Star className="w-3.5 h-3.5 fill-amber-950" />
-                    <span>Mastered!</span>
-                  </span>
-                ) : (
-                  <span className="text-xs font-black text-gray-600 bg-white/90 px-2.5 py-0.5 rounded-full border border-gray-200">
-                    {completedCount}/{topicLessons.length} Done
-                  </span>
-                )}
-
-                {/* Speaker icon hint */}
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    voiceAssistant.speak(topic.voiceName || topic.name);
-                    soundEffects.playPop();
-                  }}
-                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-sm flex items-center justify-center text-sm text-gray-700 active:scale-90 transition"
-                  title="Listen"
-                >
-                  🔊
-                </span>
-              </div>
-
-              {/* Big Icon */}
-              <div className="my-auto transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 z-10">
-                <span className="text-5xl md:text-6xl filter drop-shadow-md inline-block">
-                  {topic.iconEmoji}
-                </span>
-              </div>
-
-              {/* Topic Name */}
-              <div className="z-10 w-full">
-                <div
-                  className={`text-lg md:text-xl font-black ${topic.colorTheme.text} leading-tight drop-shadow-sm tracking-wide`}
-                >
-                  {topic.name}
+            return (
+              <button
+                key={topic.id}
+                onClick={() => handleTopicTap(topic)}
+                className="w-full text-left bg-white/95 rounded-3xl p-5 border-4 border-amber-200 hover:border-amber-400 shadow-md hover:shadow-lg transition transform active:scale-98 flex flex-col justify-between group min-h-[140px]"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition">
+                    {topic.iconEmoji}
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-black text-xs border border-amber-300">
+                    {completedCount}/{topicLessons.length} Done ⭐
+                  </div>
                 </div>
-                <div className="text-[11px] font-bold text-gray-500 mt-0.5">
-                  {topicLessons.length} Songs & Activities
+
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 group-hover:text-amber-800 transition">
+                    {topic.name}
+                  </h3>
+                  <p className="text-xs text-gray-600 font-bold mt-0.5">
+                    {topicLessons.length} Upbeat Songs & Activities
+                  </p>
                 </div>
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Modals */}
+      <StickerBookModal
+        isOpen={isStickerBookOpen}
+        onClose={() => setIsStickerBookOpen(false)}
+        unlockedStickerIds={activeProfile.stickersEarned || ['stk_sparky_gold']}
+      />
+
+      <BedtimeModeModal
+        isOpen={isBedtimeOpen}
+        onClose={() => setIsBedtimeOpen(false)}
+      />
     </div>
   );
 };

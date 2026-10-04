@@ -2,42 +2,64 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { soundEffects } from '../../services/soundEffects';
 import { voiceAssistant } from '../../services/voiceAssistant';
-import { Play, Pause, RotateCcw, ArrowRight, Music, Volume2, Sparkles } from 'lucide-react';
+import { musicEngine } from '../../services/musicEngine';
+import { Play, Pause, RotateCcw, ArrowRight, Music, Volume2, Sparkles, Heart, Gauge } from 'lucide-react';
+import { MiniGamePlayer } from './MiniGamePlayer';
 
 export const LessonPlayer: React.FC = () => {
-  const { selectedLesson, finishLessonToActivity, setScreen, settings } = useApp();
+  const { selectedLesson, finishLessonToActivity, setScreen, settings, activeProfile, updateProfile } = useApp();
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [activeLyricIndex, setActiveLyricIndex] = useState(0);
+  const [activeWordIndex, setActiveWordIndex] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState<0.8 | 1.0 | 1.2>(1.0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [showMiniGame, setShowMiniGame] = useState(false);
+  const [tapSparkles, setTapSparkles] = useState<{ id: number; x: number; y: number }[]>([]);
 
-  const duration = selectedLesson?.durationSeconds || 22;
+  const duration = selectedLesson?.durationSeconds || 30;
   const timerRef = useRef<number | null>(null);
   const lastRecitedLyricIdx = useRef<number>(-1);
 
-  // Recite first lyric immediately when starting
   useEffect(() => {
-    if (selectedLesson?.lyrics && selectedLesson.lyrics.length > 0 && isPlaying) {
+    if (selectedLesson && activeProfile) {
+      setIsFavorite(activeProfile.favoriteLessonIds?.includes(selectedLesson.id) || false);
+    }
+  }, [selectedLesson, activeProfile]);
+
+  // Start background melody and voice narration
+  useEffect(() => {
+    if (!selectedLesson) return;
+
+    musicEngine.startMelodyTrack(selectedLesson.bpm || 96, selectedLesson.interactiveTheme || 'alphabet_dance');
+
+    if (selectedLesson.lyrics && selectedLesson.lyrics.length > 0 && isPlaying) {
       const firstLyric = selectedLesson.lyrics[0];
       lastRecitedLyricIdx.current = 0;
       if (settings.voiceNarrationEnabled) {
         setTimeout(() => {
-          soundEffects.playRhythmChord('C');
           voiceAssistant.reciteLyric(firstLyric.text);
-        }, 300);
+        }, 200);
       }
     }
+
+    return () => {
+      musicEngine.stopMelodyTrack();
+      voiceAssistant.stop();
+    };
   }, [selectedLesson, settings.voiceNarrationEnabled]);
 
-  // Fast, smooth playback loop (updates every 250ms for snappy real-time lyrics & rhythm)
+  // Playback timer & word-level karaoke sync loop
   useEffect(() => {
     if (!selectedLesson) return;
 
-    if (isPlaying) {
-      const intervalMs = 250;
+    if (isPlaying && !showMiniGame) {
+      const intervalMs = 200;
       timerRef.current = window.setInterval(() => {
         setElapsedSec((prev) => {
-          const next = +(prev + 0.25).toFixed(2);
+          const step = +(0.2 * playbackSpeed).toFixed(2);
+          const next = +(prev + step).toFixed(2);
 
           // Check lyrics update
           if (selectedLesson.lyrics) {
@@ -49,34 +71,39 @@ export const LessonPlayer: React.FC = () => {
             }
 
             setActiveLyricIndex(nextLyricIdx);
+            const curLyricObj = selectedLesson.lyrics[nextLyricIdx];
 
-            // If a new lyric line has arrived, RECITE IT IMMEDIATELY with a cheerful rhythm chord!
+            // Word-level karaoke position
+            if (curLyricObj && curLyricObj.words) {
+              const curWordIdx = curLyricObj.words.findIndex(
+                (w) => next >= w.startSec && next <= w.endSec
+              );
+              setActiveWordIndex(curWordIdx >= 0 ? curWordIdx : 0);
+            }
+
+            // Recite next line when entering
             if (nextLyricIdx !== lastRecitedLyricIdx.current) {
               lastRecitedLyricIdx.current = nextLyricIdx;
-              const currentLyricObj = selectedLesson.lyrics[nextLyricIdx];
-              if (currentLyricObj && settings.voiceNarrationEnabled) {
-                const chordNames: ('C' | 'G' | 'F' | 'Am')[] = ['C', 'G', 'F', 'Am'];
-                soundEffects.playRhythmChord(chordNames[nextLyricIdx % chordNames.length]);
-                voiceAssistant.reciteLyric(currentLyricObj.text);
+              if (curLyricObj && settings.voiceNarrationEnabled) {
+                soundEffects.playNote(440 + (nextLyricIdx % 6) * 50, 0.15);
+                voiceAssistant.reciteLyric(curLyricObj.text);
               }
             }
           }
 
-          // Gentle xylophone note beat on full seconds
-          if (Math.floor(next) !== Math.floor(prev) && Math.floor(next) % 2 === 0) {
-            const melodyNotes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.0, 1046.5];
-            const note = melodyNotes[Math.floor(next / 2) % melodyNotes.length];
-            soundEffects.playNote(note, 0.2);
-          }
-
-          // When lesson ends, auto launch mini-activity!
+          // When song finishes
           if (next >= duration) {
             if (timerRef.current !== null) {
               window.clearInterval(timerRef.current);
             }
-            setTimeout(() => {
-              finishLessonToActivity();
-            }, 600);
+            musicEngine.stopMelodyTrack();
+            if (selectedLesson.miniGame) {
+              setShowMiniGame(true);
+            } else {
+              setTimeout(() => {
+                finishLessonToActivity();
+              }, 400);
+            }
             return duration;
           }
           return next;
@@ -85,239 +112,309 @@ export const LessonPlayer: React.FC = () => {
     } else if (timerRef.current !== null) {
       window.clearInterval(timerRef.current);
       voiceAssistant.stop();
+      musicEngine.stopMelodyTrack();
     }
 
     return () => {
       if (timerRef.current !== null) window.clearInterval(timerRef.current);
     };
-  }, [isPlaying, duration, selectedLesson, finishLessonToActivity, settings.voiceNarrationEnabled]);
+  }, [isPlaying, showMiniGame, duration, selectedLesson, playbackSpeed, finishLessonToActivity, settings.voiceNarrationEnabled]);
 
-  if (!selectedLesson) {
-    return null;
-  }
+  if (!selectedLesson) return null;
+
+  const currentLyric = selectedLesson.lyrics ? selectedLesson.lyrics[activeLyricIndex] : null;
 
   const handlePlayPause = () => {
-    soundEffects.playPop();
+    musicEngine.playPop();
     const nextState = !isPlaying;
     setIsPlaying(nextState);
-    if (nextState && selectedLesson.lyrics) {
-      const currentLyric = selectedLesson.lyrics[activeLyricIndex];
-      if (currentLyric) {
-        voiceAssistant.reciteLyric(currentLyric.text);
-      }
+    if (nextState) {
+      musicEngine.startMelodyTrack(selectedLesson.bpm || 96, selectedLesson.interactiveTheme || 'alphabet_dance');
+      if (currentLyric) voiceAssistant.reciteLyric(currentLyric.text);
     } else {
+      musicEngine.stopMelodyTrack();
       voiceAssistant.stop();
     }
   };
 
   const handleReplay = () => {
-    soundEffects.playPop();
+    musicEngine.playPop();
     voiceAssistant.stop();
     setElapsedSec(0);
     setActiveLyricIndex(0);
+    setActiveWordIndex(0);
     lastRecitedLyricIdx.current = 0;
+    setShowMiniGame(false);
     setIsPlaying(true);
+    musicEngine.startMelodyTrack(selectedLesson.bpm || 96, selectedLesson.interactiveTheme || 'alphabet_dance');
     if (selectedLesson.lyrics && selectedLesson.lyrics[0]) {
       setTimeout(() => {
-        soundEffects.playRhythmChord('C');
         voiceAssistant.reciteLyric(selectedLesson.lyrics![0].text);
-      }, 250);
+      }, 200);
     }
   };
 
-  const handleManualRecite = () => {
-    soundEffects.playPop();
-    if (currentLyric) {
-      voiceAssistant.reciteLyric(currentLyric.text);
+  const handleToggleSpeed = () => {
+    musicEngine.playPop();
+    const speeds: (0.8 | 1.0 | 1.2)[] = [1.0, 0.8, 1.2];
+    const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
+    const newSpeed = speeds[nextIdx];
+    setPlaybackSpeed(newSpeed);
+    voiceAssistant.setRate(newSpeed);
+    voiceAssistant.speak(`Speed: ${newSpeed === 0.8 ? 'Slow' : newSpeed === 1.2 ? 'Fast' : 'Normal'}`);
+  };
+
+  const handleToggleFavorite = () => {
+    musicEngine.playStarChime();
+    const newFav = !isFavorite;
+    setIsFavorite(newFav);
+    if (activeProfile) {
+      const currentFavs = activeProfile.favoriteLessonIds || [];
+      const updatedFavs = newFav
+        ? [...currentFavs, selectedLesson.id]
+        : currentFavs.filter((id) => id !== selectedLesson.id);
+      updateProfile({ favoriteLessonIds: updatedFavs });
+      voiceAssistant.speak(newFav ? 'Added to your favorites!' : 'Removed from favorites');
     }
   };
 
-  const handleNextToActivity = () => {
-    voiceAssistant.stop();
-    soundEffects.playSparkleStar();
-    finishLessonToActivity();
+  // Interactive Tap-Along on screen
+  const handleScreenTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    musicEngine.playStarChime();
+    const newSparkle = { id: Date.now(), x, y };
+    setTapSparkles((prev) => [...prev.slice(-4), newSparkle]);
+
+    setTimeout(() => {
+      setTapSparkles((prev) => prev.filter((s) => s.id !== newSparkle.id));
+    }, 800);
   };
 
-  const progressPercent = Math.min(100, (elapsedSec / duration) * 100);
-  const currentLyric = selectedLesson.lyrics ? selectedLesson.lyrics[activeLyricIndex] : null;
+  // If MiniGame is triggered after song
+  if (showMiniGame && selectedLesson.miniGame) {
+    return (
+      <div className="w-full max-w-4xl mx-auto p-4 animate-pop-in">
+        <MiniGamePlayer
+          config={selectedLesson.miniGame}
+          onComplete={() => {
+            setShowMiniGame(false);
+            finishLessonToActivity();
+          }}
+          onSkip={() => {
+            setShowMiniGame(false);
+            finishLessonToActivity();
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-3 md:py-5 flex flex-col items-center select-none">
-      {/* Top minimal header */}
-      <div className="w-full flex items-center justify-between mb-3">
+    <div className="w-full max-w-4xl mx-auto flex flex-col gap-4 p-3 md:p-6 select-none animate-fade-in">
+      {/* Top Bar with Title, Favorites & Exit */}
+      <div className="flex items-center justify-between bg-white/90 backdrop-blur-sm p-3.5 md:p-4 rounded-3xl border-2 border-sunshine-300 shadow-sm">
         <button
           onClick={() => {
+            musicEngine.stopMelodyTrack();
             voiceAssistant.stop();
-            setScreen('topic-menu');
+            setScreen('home');
           }}
-          className="px-4 py-2 bg-white/95 border-2 border-amber-300 rounded-2xl font-black text-sm text-gray-700 kid-btn-pop shadow-sm"
+          className="px-4 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-sm border border-amber-300 flex items-center gap-1 active:scale-95"
         >
-          ⬅️ Back to Songs
+          <span>⬅️ Back to Home</span>
         </button>
 
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 border-2 border-amber-300 text-amber-900 font-black text-xs md:text-sm shadow-sm">
-          <Music className="w-4 h-4 text-amber-700 animate-bounce" />
-          <span className="truncate max-w-[200px] md:max-w-none">{selectedLesson.title}</span>
+        <div className="text-center flex-1 mx-2">
+          <h2 className="text-lg md:text-2xl font-black text-amber-900 leading-tight">
+            {selectedLesson.title}
+          </h2>
+          <span className="text-xs text-amber-700 font-bold hidden sm:inline">
+            {selectedLesson.description}
+          </span>
         </div>
 
         <button
-          onClick={handleNextToActivity}
-          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 border-2 border-emerald-600 text-white rounded-2xl font-black text-sm flex items-center gap-1 kid-btn-pop shadow-sm"
+          onClick={handleToggleFavorite}
+          className={`p-2.5 rounded-2xl border-2 transition active:scale-90 ${
+            isFavorite
+              ? 'bg-rose-100 border-rose-400 text-rose-600'
+              : 'bg-white border-gray-300 text-gray-400 hover:text-rose-500'
+          }`}
+          title="Favorite Song"
         >
-          <span>Game ⭐</span>
-          <ArrowRight className="w-4 h-4" />
+          <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
       </div>
 
-      {/* Main Video & Visualizer Screen */}
-      <div className="w-full bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-300 relative">
-        {selectedLesson.mediaUrl ? (
-          <div className="w-full aspect-video bg-black flex items-center justify-center">
-            {selectedLesson.mediaUrl.includes('youtube.com') || selectedLesson.mediaUrl.includes('youtu.be') ? (
-              <iframe
-                src={selectedLesson.mediaUrl}
-                title={selectedLesson.title}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video
-                src={selectedLesson.mediaUrl}
-                controls
-                autoPlay={isPlaying}
-                className="w-full h-full object-contain"
-              />
-            )}
-          </div>
-        ) : (
-          /* Interactive Animated Visualizer with Dancing Sparky Mascot & Real-Time Vocal Recitation */
+      {/* Main Interactive Stage */}
+      <div
+        onClick={handleScreenTap}
+        className="relative bg-gradient-to-b from-sunshine-100 via-amber-50 to-orange-100 rounded-3xl border-4 border-sunshine-400 p-6 md:p-10 min-h-[360px] md:min-h-[420px] flex flex-col items-center justify-between shadow-xl overflow-hidden cursor-pointer"
+      >
+        {/* Tap Sparkles */}
+        {tapSparkles.map((sp) => (
           <div
-            className="w-full aspect-video sm:min-h-[380px] relative flex flex-col items-center justify-between p-5 md:p-6 overflow-hidden"
-            style={{
-              background: `radial-gradient(circle at 50% 30%, ${selectedLesson.accentColor}30 0%, #fffbeb 60%, ${selectedLesson.accentColor}15 100%)`,
-            }}
+            key={sp.id}
+            style={{ left: sp.x, top: sp.y }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none text-3xl animate-ping"
           >
-            {/* Floating Background Stars & Notes */}
-            <div className="absolute top-6 left-8 text-3xl animate-bounce-slow opacity-60">✨</div>
-            <div className="absolute top-10 right-10 text-3xl animate-float-star opacity-60">🌟</div>
-            <div className="absolute bottom-14 left-10 text-3xl animate-wiggle opacity-60">🎈</div>
-            <div className="absolute bottom-12 right-12 text-3xl animate-bounce-slow opacity-60">🎵</div>
+            ⭐
+          </div>
+        ))}
 
-            {/* Central Mascot & Character Scene */}
-            <div className="my-auto flex flex-col items-center justify-center text-center z-10 w-full">
-              {/* Dancing Sparky + Lesson Mascot */}
-              <div className="relative mb-3 flex items-center justify-center gap-3">
-                {/* Dancing Sparky */}
-                <div className={`relative ${isPlaying ? 'animate-bounce-slow' : ''}`}>
-                  <img
-                    src="/sparky.png"
-                    alt="Sparky Dancing"
-                    className="w-20 h-20 md:w-24 md:h-24 object-contain filter drop-shadow-md"
-                  />
-                  {isPlaying && (
-                    <div className="absolute -top-1 -right-1 text-xl animate-spin-slow">🎶</div>
-                  )}
-                </div>
+        {/* Mascot Sparky Dancing & Status */}
+        <div className="w-full flex items-center justify-between">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-sunshine-300 text-xs font-black text-amber-900 shadow-sm">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>Tap Screen to Sparkle! ✨</span>
+          </div>
 
-                {/* Lesson Highlight Emoji */}
-                <div
-                  className={`w-28 h-28 md:w-36 md:h-36 rounded-3xl flex items-center justify-center text-6xl md:text-7xl shadow-xl border-4 border-white transition-transform duration-300 ${
-                    isPlaying ? 'scale-105 animate-wiggle' : ''
-                  }`}
-                  style={{ backgroundColor: `${selectedLesson.accentColor}35` }}
-                >
-                  <span className="filter drop-shadow-lg">
-                    {currentLyric?.highlightEmoji || selectedLesson.thumbnailEmoji}
-                  </span>
-                </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-amber-800 bg-amber-200/80 px-3 py-1 rounded-full">
+              {Math.floor(elapsedSec)}s / {duration}s
+            </span>
+          </div>
+        </div>
+
+        {/* Dancing Character & Stage Visual */}
+        <div className="my-auto flex flex-col items-center justify-center gap-3">
+          <div className="relative">
+            {/* Sparky Mascot Dancing Animation */}
+            <div
+              className={`transform transition duration-300 ${
+                isPlaying ? 'animate-bounce scale-110' : 'scale-100'
+              }`}
+            >
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-200 p-1 shadow-2xl border-4 border-white flex items-center justify-center relative">
+                <img
+                  src="/sparky.png"
+                  alt="Sparky Mascot"
+                  className="w-full h-full object-contain drop-shadow-md"
+                  onError={(e) => {
+                    // Fallback to cute star emoji if asset loading
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+                <span className="text-6xl absolute">⭐</span>
               </div>
-
-              {/* Karaoke Bouncing Lyric Banner */}
-              {currentLyric && (
-                <div 
-                  onClick={handleManualRecite}
-                  className="px-5 py-3 rounded-2xl bg-white/95 backdrop-blur border-3 border-amber-400 shadow-xl max-w-xl animate-pop-in cursor-pointer hover:scale-105 transition"
-                  title="Tap to hear recitation again"
-                >
-                  <div className="flex items-center justify-center gap-2.5">
-                    <Volume2 className="w-6 h-6 text-rose-500 animate-bounce flex-shrink-0" />
-                    <p className="text-xl md:text-3xl font-black text-gray-900 leading-snug tracking-wide drop-shadow-sm">
-                      {currentLyric.text}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-center gap-1.5 mt-1.5">
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                    <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">
-                      Singing Aloud 🎵 (Tap to repeat)
-                    </span>
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Progress Slider Display for Toddlers */}
-            <div className="w-full z-10 mt-auto pt-3">
-              <div className="w-full bg-white/80 rounded-full h-4 p-0.5 border-2 border-amber-300 shadow-inner relative overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 via-rose-400 to-emerald-400 transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <div className="flex justify-between items-center text-xs font-black text-amber-900 mt-1 px-1">
-                <span>{Math.floor(elapsedSec)}s</span>
-                <span>{duration}s</span>
-              </div>
+            {isPlaying && (
+              <span className="absolute -top-3 -right-3 text-2xl animate-spin">
+                🎶
+              </span>
+            )}
+          </div>
+
+          <div className="text-center">
+            <span className="text-4xl md:text-5xl drop-shadow-md">
+              {currentLyric?.highlightEmoji || selectedLesson.thumbnailEmoji}
+            </span>
+          </div>
+        </div>
+
+        {/* KARAOKE SING-ALONG LYRICS WITH BOUNCING BALL */}
+        {currentLyric && (
+          <div className="w-full bg-white/95 backdrop-blur-md rounded-3xl p-4 md:p-6 border-4 border-amber-400 shadow-lg text-center mt-2 relative">
+            {/* Bouncing Musical Note Indicator */}
+            <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-amber-500 text-white font-black text-xs shadow-md border-2 border-white flex items-center gap-1">
+              <span>🎵 SING ALONG</span>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5 text-xl md:text-3xl font-black text-gray-800 my-2">
+              {currentLyric.words && currentLyric.words.length > 0 ? (
+                currentLyric.words.map((wordObj, wIdx) => {
+                  const isCurrentWord = wIdx === activeWordIndex;
+                  return (
+                    <span
+                      key={wIdx}
+                      className={`relative px-1.5 py-0.5 rounded-xl transition duration-150 ${
+                        isCurrentWord
+                          ? 'text-amber-600 bg-amber-200/90 scale-110 shadow-sm border border-amber-400'
+                          : 'text-gray-800'
+                      }`}
+                    >
+                      {/* Bouncing ball indicator over current word */}
+                      {isCurrentWord && isPlaying && (
+                        <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-base animate-bounce">
+                          ⭐
+                        </span>
+                      )}
+                      {wordObj.word}
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="text-amber-900">{currentLyric.text}</span>
+              )}
             </div>
           </div>
         )}
 
-        {/* Oversized Toddler Controls Bar (At least 64px tap targets) */}
-        <div className="bg-amber-50 border-t-4 border-amber-300 p-4 md:p-5 flex items-center justify-center gap-4 md:gap-8">
-          {/* Replay Button (>= 64px) */}
-          <button
-            onClick={handleReplay}
-            aria-label="Replay song from start"
-            className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-amber-300 hover:bg-amber-400 border-3 border-amber-500 text-amber-950 flex flex-col items-center justify-center shadow-lg kid-btn-pop active:scale-95 transition"
-            title="Replay from beginning"
-          >
-            <RotateCcw className="w-7 h-7 stroke-[3]" />
-            <span className="text-[10px] font-black uppercase mt-0.5">Replay</span>
-          </button>
+        {/* Progress Bar */}
+        <div className="w-full bg-amber-200/80 rounded-full h-3.5 mt-4 overflow-hidden border border-amber-300">
+          <div
+            className="bg-gradient-to-r from-amber-400 to-orange-500 h-full transition-all duration-200 rounded-full"
+            style={{ width: `${Math.min(100, (elapsedSec / duration) * 100)}%` }}
+          />
+        </div>
+      </div>
 
-          {/* Big Play/Pause Button (>= 64px) */}
+      {/* 64px+ Toddler-Friendly Controls Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white/90 p-4 rounded-3xl border-2 border-sunshine-300 shadow-md">
+        {/* Play/Pause & Replay */}
+        <div className="flex items-center gap-3">
           <button
             onClick={handlePlayPause}
-            aria-label={isPlaying ? 'Pause song' : 'Play song'}
-            className={`w-20 h-20 md:w-24 md:h-24 rounded-3xl border-4 text-white flex flex-col items-center justify-center shadow-2xl kid-btn-pop active:scale-95 transition ${
+            className={`min-w-[68px] min-h-[68px] rounded-3xl flex items-center justify-center text-white text-2xl shadow-lg border-4 transition transform active:scale-90 ${
               isPlaying
-                ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-orange-600'
-                : 'bg-gradient-to-br from-emerald-400 to-green-600 border-green-700'
+                ? 'bg-amber-500 border-amber-600 hover:bg-amber-600'
+                : 'bg-emerald-500 border-emerald-600 hover:bg-emerald-600'
             }`}
-            title={isPlaying ? 'Pause' : 'Sing!'}
+            aria-label={isPlaying ? 'Pause Song' : 'Play Song'}
           >
-            {isPlaying ? (
-              <Pause className="w-10 h-10 md:w-12 md:h-12 fill-white" />
-            ) : (
-              <Play className="w-10 h-10 md:w-12 md:h-12 fill-white translate-x-0.5" />
-            )}
-            <span className="text-[11px] font-black uppercase tracking-wider mt-0.5">
-              {isPlaying ? 'Pause' : 'Sing!'}
-            </span>
+            {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 fill-current ml-1" />}
           </button>
 
-          {/* Skip straight to Mini-Activity Button (>= 64px) */}
           <button
-            onClick={handleNextToActivity}
-            aria-label="Go to fun game"
-            className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-emerald-400 hover:bg-emerald-500 border-3 border-emerald-600 text-white flex flex-col items-center justify-center shadow-lg kid-btn-pop active:scale-95 transition"
-            title="Go to Game"
+            onClick={handleReplay}
+            className="min-w-[68px] min-h-[68px] rounded-3xl bg-amber-100 hover:bg-amber-200 border-4 border-amber-300 text-amber-900 flex items-center justify-center text-2xl shadow-md active:scale-90"
+            title="Replay Song from Start"
           >
-            <ArrowRight className="w-7 h-7 stroke-[3]" />
-            <span className="text-[10px] font-black uppercase mt-0.5">Game ⭐</span>
+            <RotateCcw className="w-7 h-7" />
           </button>
         </div>
+
+        {/* Speed Control Button */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleToggleSpeed}
+            className="min-h-[56px] px-4 rounded-2xl bg-sunshine-100 hover:bg-sunshine-200 border-2 border-sunshine-300 text-sunshine-950 font-black text-sm flex items-center gap-2 shadow-sm active:scale-95"
+          >
+            <Gauge className="w-5 h-5 text-amber-600" />
+            <span>Speed: {playbackSpeed === 0.8 ? '0.8x Slow' : playbackSpeed === 1.2 ? '1.2x Fast' : '1.0x'}</span>
+          </button>
+        </div>
+
+        {/* Next to Activity Button */}
+        <button
+          onClick={() => {
+            musicEngine.stopMelodyTrack();
+            voiceAssistant.stop();
+            if (selectedLesson.miniGame) {
+              setShowMiniGame(true);
+            } else {
+              finishLessonToActivity();
+            }
+          }}
+          className="min-h-[64px] px-6 rounded-3xl bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white font-black text-lg shadow-lg border-4 border-orange-400 flex items-center gap-2 transform active:scale-95"
+        >
+          <span>Play Game!</span>
+          <ArrowRight className="w-6 h-6" />
+        </button>
       </div>
     </div>
   );
